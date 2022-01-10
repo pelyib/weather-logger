@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Weather forecast logger</title>
+    <meta name="description" content="Weather forecast logger">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js" integrity="sha512-TW5s0IT/IppJtu76UbysrBH9Hy/5X41OTAbQuffZFU6lQ1rdcLHzpU5BzVvr/YFykoiMYZVWlr/PX1mDcfM9Qg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+  </head>
+  <body>
+    <p>{{.Hello}} {{.World}}!</p>
+    <div width="100%" height="500px">
+      <canvas id="myChart" height="500px"></canvas>
+    </div>
+  </body>
+<script>
+const ctx = document.getElementById('myChart');
+const myChart = new Chart(ctx, {
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        xAxes: {
+          display: true,
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              'day': 'MMM DD'
+            }
+          },
+          ticks: {
+            major: {
+              enabled: false
+            }
+          },
+          title: {
+            display: true,
+            text: "Date"
+          }
+        },
+        yAxes: {
+        //  min: -10,
+        //  max: 35,
+          title: {
+            display: true,
+            text: "Temperature"
+          }
+        }
+      }
+    },
+    data: {
+      labels : {{.Labels}},
+      datasets: [
+        {
+          type: "line",
+          label: "MAX",
+          backgroundColor: "rgba(255, 0, 0, 0.3)",
+          data: {{.MinMaxLines.Max}}
+        }, {
+          type: "line",
+          label: "MIN",
+          backgroundColor: "rgba(0, 0, 255, 0.3)",
+          data: {{.MinMaxLines.Min}}
+        },
+ /* {
+          type: "line",
+          label: "AVG",
+          data: [
+              {x: 1638489600000, y: 1.11},
+              {x: 1638576000000, y: 3.33},
+              {x: 1638662400000, y: 2.22},
+              {x: 1638748800000, y: 4.44},
+              {x: 1638835200000, y: -1.11}
+          ]
+        },
+        {
+          type: "bubble",
+          label: "Max",
+          backgroundColor: "rgba(255, 0, 0, 0.3)",
+          data: [
+            {x: 1640476800000, y: 9.46, r: 6},
+            {x: 1640563200000, y: 4.44, r: 16}
+          ]
+        }, {
+          type: "bubble",
+          label: "Min",
+          backgroundColor: "rgba(0, 0, 255, 0.3)",
+          data: [
+            {x: 1640476800000, y: 6.41, r: 10}
+          ],
+        },*/ {
+          type: "bubble",
+          label: "From DB",
+          data: {{.Bubbles}}
+        }
+    ]
+  }
+});
+</script>
+</html>

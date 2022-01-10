@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  http:
+    build:
+      dockerfile: ./docker/Dockerfile.http
+      context: .
+      target: dev
+    volumes:
+      - ./db:/app/db:ro
+      - ./configs/config.dev.yaml:/app/config.yaml:ro
+      - ./web:/app/web:ro
+    ports:
+      - "8095:8090"
+    env_file: .env
+    command: /app/http

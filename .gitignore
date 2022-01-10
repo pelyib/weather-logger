@@ -1,2 +1,8 @@
+# files
+.env
+docker-compose.override.yml
+configs/config*.yaml
+
 # folders
-/vendor
+bin/
+db/
