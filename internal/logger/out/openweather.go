@@ -63,11 +63,14 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
   forecasts := make([]internal.Forecast, 0)
 
   for _, df := range decBody.Daily {
+    at := time.Unix(df.Dt, 0)
+    at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
+
     fc := internal.Forecast{
       Source: "OpenWeather",
       Min: df.Temp.Min,
       Max: df.Temp.Max,
-      At: time.Unix(df.Dt, 0).Format(time.RFC3339),
+      At: at.Format(time.RFC3339),
       RecordedAt: time.Now().Format(time.RFC3339),
     }
 

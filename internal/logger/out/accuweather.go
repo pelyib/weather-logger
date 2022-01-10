@@ -72,20 +72,22 @@ func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
   json.Unmarshal(body, &decBody)
 
   for _, df := range decBody.DailyForecasts {
+    at, _ := time.Parse(time.RFC3339, df.Date)
+    at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
+
     fcs = append(
       fcs,
       internal.Forecast{
         Source: "AccuWeather",
         Min: df.Temperature.Minimum.Value,
         Max: df.Temperature.Maximum.Value,
-        At: df.Date,
+        At: at.Format(time.RFC3339),
         RecordedAt: time.Now().Format(time.RFC3339),
       },
     )
   }
 
   return fcs
-//  return []internal.Forecast{internal.Forecast{"Accuweather", 1.11, 2.22, time.Now().Format(time.RFC3339), time.Now().Format(time.RFC3339)}}
 }
 
 func MakeAW(cnf *internal.LoggerCnf) ExternalProvider {
