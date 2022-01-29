@@ -13,5 +13,6 @@ logger:
   database:
     folder: "/path/to/database/"
 http:
+  port: 80
   template:
     index: "/path/to/index/template.html"

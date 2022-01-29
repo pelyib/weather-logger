@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/http/business"
+	"github.com/pelyib/weather-logger/internal/http/out"
 )
 
 var cnf internal.Cnf
@@ -15,12 +17,17 @@ func main() {
   if err != nil {
     log.Fatalln(err)
   }
+fmt.Println("loading DB")
+  db := internal.MakeDb(cnf)
+fmt.Println("DB loaded")
+  fss := MakeFss(cnf, &db) // TODO inject DB
+fmt.Println("FC service loaded")
+  fcs := fss.get(internal.SearchRequest{})
 
-  fss := MakeFss(cnf)
-
-  fs := fss.get(internal.SearchRequest{})
-
-  fmt.Println("main: processed")
-
-  add(fs)
+  log.Println("main: Forecasts fetched")
+  cb := business.MakeChartBuilder(out.MakeChartRepository(&db))
+  log.Println("main: chartbuilder built")
+  cb.Build(fcs)
+  log.Println("main: chartbuilder done")
+  add(fcs)
 }

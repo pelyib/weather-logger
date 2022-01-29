@@ -6,6 +6,7 @@ type Forecast struct {
   Max float32
   At string
   RecordedAt string
+  // TODO: add location as well [botond.pelyi]
 }
 
 type SearchRequest struct {

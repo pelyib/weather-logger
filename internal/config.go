@@ -18,6 +18,7 @@ type HttpCnf struct {
   Template struct {
     Index string `yaml:"index"`
   } `yaml:"template"`
+  Port uint16 `yaml:"port"`
 }
 
 type LoggerCnf struct {

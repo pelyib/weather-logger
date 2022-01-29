@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/http/business"
 )
 
 type Bubble struct {
@@ -50,6 +51,22 @@ func (line Line) Swap(i, j int) {
 
 func (line Line) Less(i, j int) bool {
   return line[i].X < line[j].X
+}
+
+type indexHandler struct {
+  r business.ChartRepository
+}
+
+func MakeIndexHandler(r business.ChartRepository) indexHandler {
+  return indexHandler{r: r}
+}
+
+func (h indexHandler) index(w http.ResponseWriter, req *http.Request) {
+  c := h.r.Load(business.ChartSearchRequest{Ym: time.Now().Format("2006-01")})
+
+  jc, _ := json.Marshal(c)
+
+  w.Write([]byte(jc))
 }
 
 func index(w http.ResponseWriter, req *http.Request) {

@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/pelyib/weather-logger/internal"
+	bolt "go.etcd.io/bbolt"
 )
 
 type AccuWeather struct {
   cnf *internal.LoggerCnf
+  db *bolt.DB
 }
 
 func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
@@ -41,7 +43,6 @@ func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
 
   res, err := client.Do(req)
 
-  
   if err != nil {
     fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
     return fcs
@@ -53,6 +54,29 @@ func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
   if err != nil {
     fmt.Errorf("Response body reading failed", err.Error())
     return fcs
+  }
+
+fmt.Println(s.db.Path())
+
+  err = s.db.Update(func(t *bolt.Tx) error {
+    b, err := t.CreateBucketIfNotExists([]byte("accuweather.raw_response"))
+
+    if err != nil {
+      fmt.Errorf("Bucket creation / opening failed", err.Error())
+      return err
+    }
+
+    err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
+fmt.Println("Put done")
+    if err != nil {
+      return err
+    }
+
+    return nil
+  })
+
+  if err != nil {
+    fmt.Errorf("Connectiong to DB failed, cannot be saved", err.Error())
   }
 
   var decBody struct {
@@ -90,6 +114,7 @@ func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
   return fcs
 }
 
-func MakeAW(cnf *internal.LoggerCnf) ExternalProvider {
-  return AccuWeather{cnf: cnf}
+func MakeAW(cnf *internal.LoggerCnf, db *bolt.DB) ExternalProvider {
+  fmt.Println(db.Path())
+  return AccuWeather{cnf: cnf, db: db}
 }

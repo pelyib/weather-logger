@@ -41,8 +41,6 @@ const myChart = new Chart(ctx, {
           }
         },
         yAxes: {
-        //  min: -10,
-        //  max: 35,
           title: {
             display: true,
             text: "Temperature"
@@ -92,7 +90,7 @@ const myChart = new Chart(ctx, {
           ],
         },*/ {
           type: "bubble",
-          label: "From DB",
+          label: "Forecasts",
           data: {{.Bubbles}}
         }
     ]

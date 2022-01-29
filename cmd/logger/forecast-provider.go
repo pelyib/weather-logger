@@ -1,13 +1,16 @@
 package main
 
 import (
-	"github.com/pelyib/weather-logger/internal"
-	"github.com/pelyib/weather-logger/internal/logger/out"
+  bolt "go.etcd.io/bbolt"
+
+  "github.com/pelyib/weather-logger/internal"
+  "github.com/pelyib/weather-logger/internal/logger/out"
 )
 
 type ForecastProviderService struct {
   cnf *internal.LoggerCnf
   extPrds []out.ExternalProvider
+  db bolt.DB
 }
 
 type ForecastProvider interface {
@@ -24,9 +27,8 @@ func (s ForecastProviderService) get(searchRequest internal.SearchRequest) []int
   return fcs
 }
 
-func MakeFss(cnf *internal.LoggerCnf) ForecastProvider {
-  providers := []out.ExternalProvider{out.MakeAW(cnf), out.MakeOW(cnf)}
-
-  return ForecastProviderService{cnf: cnf, extPrds: providers}
+func MakeFss(cnf *internal.LoggerCnf, db *bolt.DB) ForecastProvider {
+  providers := []out.ExternalProvider{out.MakeAW(cnf, db), out.MakeOW(cnf)}
+  return ForecastProviderService{cnf: cnf, extPrds: providers, db: *db}
 }
 
