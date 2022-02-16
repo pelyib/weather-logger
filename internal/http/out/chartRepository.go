@@ -77,7 +77,6 @@ func (r DatabaseRepository) Save(c business.Chart) {
       return err
     } else {
       log.Println("chartRepository: saving")
-      //log.Println(fmt.Sprintf("chartRepository: >>%s<<", cjson))
       b.Put([]byte(c.Ym), []byte(cjson))
     }
 

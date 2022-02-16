@@ -1,21 +1,22 @@
 package out
 
 import (
-  "encoding/json"
-  "net/http"
-  "net/url"
-  "time"
-  "fmt"
-  "io"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"time"
 
-  "github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 type OpenWeather struct {
-  cnf *internal.LoggerCnf
+  cnf *shared.LoggerCnf
 }
 
-func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
+func (s OpenWeather) Get(sr business.SearchRequest) []business.Forecast {
   client := http.Client{}
   q := url.Values{}
   q.Add("lat", fmt.Sprintf("%f", s.cnf.Cities[0].Langitude))
@@ -28,7 +29,7 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
 
   if (err != nil) {
     fmt.Errorf("Can not build reuqest | Reason:", err.Error())
-    return []internal.Forecast{}
+    return []business.Forecast{}
   }
 
   req.URL.RawQuery = q.Encode()
@@ -36,7 +37,7 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
 
   if err != nil {
     fmt.Errorf("Fecthing forecasts from OpenWeather failed", err.Error())
-    return []internal.Forecast{}
+    return []business.Forecast{}
   }
 
   defer res.Body.Close()
@@ -44,7 +45,7 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
 
   if err != nil {
     fmt.Errorf("Reponse body reading failed", err.Error())
-    return []internal.Forecast{}
+    return []business.Forecast{}
   }
 
   var decBody struct {
@@ -60,13 +61,13 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
 
   json.Unmarshal(body, &decBody)
 
-  forecasts := make([]internal.Forecast, 0)
+  forecasts := make([]business.Forecast, 0)
 
   for _, df := range decBody.Daily {
     at := time.Unix(df.Dt, 0)
     at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
 
-    fc := internal.Forecast{
+    fc := business.Forecast{
       Source: "OpenWeather",
       Min: df.Temp.Min,
       Max: df.Temp.Max,
@@ -80,6 +81,6 @@ func (s OpenWeather) Get(sr internal.SearchRequest) []internal.Forecast {
   return forecasts
 }
 
-func MakeOW(cnf *internal.LoggerCnf) ExternalProvider {
+func MakeOW(cnf *shared.LoggerCnf) business.ForecastProvider {
   return OpenWeather{cnf: cnf}
 }

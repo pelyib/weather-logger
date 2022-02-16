@@ -1,16 +1,17 @@
 package business
 
 import (
+	"fmt"
 	"log"
 	"time"
 
-	"github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/logger/business"
 )
 type minAndMaxLineChartBuilder struct {
   repository ChartRepository
 }
 
-func (b minAndMaxLineChartBuilder) Build(fcs []internal.Forecast) {
+func (b minAndMaxLineChartBuilder) Build(fcs []business.Forecast) {
   log.Println("lineChartBuilder: start building")
 
   for _, fc := range fcs {
@@ -18,27 +19,42 @@ func (b minAndMaxLineChartBuilder) Build(fcs []internal.Forecast) {
 
     chart := b.repository.Load(ChartSearchRequest{Ym: at.Format("2006-01")})
 
-    dataset, err := chart.MinLineDataset()
+    min, err := chart.MinLineDataset()
     if err != nil {
-      log.Println("lineChartBuilder: Line dataset is missing")
+      log.Println("lineChartBuilder | MinLineDataset is missing")
       return
     }
 
-    if v, ok := dataset.Data[at.Format("02")]; ok {
-      if v.Y < fc.Min {
-        dataset.Data[at.Format("02")] = Item{X: v.X, Y: fc.Min}
+    max, err := chart.MaxLineDataset()
+    if err != nil {
+      log.Println("lineChartBuilder | MaxLineDataset is missing")
+    }
+
+    if v, ok := min.Data[at.Format("02")]; ok {
+      if v.Y > fc.Min {
+        min.Data[at.Format("02")] = Item{X: v.X, Y: fc.Min}
       }
     } else {
       at, _ := time.Parse(time.RFC3339, fc.At)
-      dataset.Data[at.Format("02")] = Item{X: at.UnixMilli(), Y: fc.Min}
+      min.Data[at.Format("02")] = Item{X: at.UnixMilli(), Y: fc.Min}
     }
-    log.Println("lineChartBuilder: saving")
+
+    if v, ok := max.Data[at.Format("02")]; ok {
+      if v.Y < fc.Max {
+        max.Data[at.Format("02")] = Item{X: v.X, Y: fc.Max}
+      }
+    } else {
+      at, _ := time.Parse(time.RFC3339, fc.At)
+      max.Data[at.Format("02")] = Item{X: at.UnixMilli(), Y: fc.Max}
+    }
+
+    log.Println(fmt.Sprintf("lineChartBuilder | %s saving", at.Format("2006.01")))
     b.repository.Save(chart)
   }
 }
 
-func MakeLineChartBuilder(r ChartRepository) chartBuilder {
+func MakeLineChartBuilder(r *ChartRepository) ChartBuilder {
   return minAndMaxLineChartBuilder{
-    repository: r,
+    repository: *r,
   }
 }

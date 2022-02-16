@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/pelyib/weather-logger/internal/shared"
 	bolt "go.etcd.io/bbolt"
 )
 
-func MakeDb(cnf *LoggerCnf) bolt.DB {
-  db, err := bolt.Open(fmt.Sprintf("%s%s", cnf.Database.Folder, "0.2.0.db"), 0600, nil)
+func MakeDb(cnf *shared.Database) bolt.DB {
+  db, err := bolt.Open(fmt.Sprintf("%s%s", cnf.Folder, cnf.FileName), 0600, nil)
   if err != nil {
     log.Fatal(err)
   }

@@ -2,6 +2,7 @@
 .env
 docker-compose.override.yml
 configs/config*.yaml
+configs/mq*.json
 
 # folders
 bin/

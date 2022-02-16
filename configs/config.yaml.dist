@@ -12,7 +12,23 @@ logger:
       appid: "{your app id}"
   database:
     folder: "/path/to/database/"
+    fileName: "filename.db"
+  mq:
+    user: "mq-user"
+    password: "mq-password"
+    domain: "mq.domain"
+    port: 1234
+    vhost: "mq-vhost"
 http:
   port: 80
   template:
     index: "/path/to/index/template.html"
+  mq:
+    user: "mq-user"
+    password: "mq-password"
+    domain: "mq.domain"
+    port: 1234
+    vhost: "mq-vhost"
+  database:
+    folder: "/path/to/database/"
+    fileName: "filename.db"

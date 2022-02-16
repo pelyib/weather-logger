@@ -1,0 +1,52 @@
+{
+  "rabbit_version": "3.9.13",
+  "parameters": [
+    
+  ],
+  "policies": [
+    
+  ],
+  "queues": [
+    {
+      "name": "command|update-forecast",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "http",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {
+        
+      }
+    },
+    {
+      "name": "logger",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {
+        
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "http",
+      "destination": "command|update-forecast",
+      "destination_type": "qeue",
+      "routing_key": "command|update-forecast",
+      "arguments": {
+        
+      }
+    }
+  ]
+}u

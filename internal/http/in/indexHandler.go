@@ -1,18 +1,19 @@
-package main
+package in
 
 import (
-	"bufio"
-	"encoding/json"
-	"fmt"
-	"html/template"
+	//	"bufio"
+//	"encoding/json"
 	"log"
+	//  "fmt"
+	"html/template"
+	//	"log"
 	"net/http"
-	"os"
-	"sort"
+	//  "os"
+	//	"sort"
 	"time"
 
-	"github.com/pelyib/weather-logger/internal"
 	"github.com/pelyib/weather-logger/internal/http/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 type Bubble struct {
@@ -24,9 +25,10 @@ type Bubble struct {
 type Index struct {
   Hello string
   World string
-  Labels []int64
-  Bubbles []Bubble
-  MinMaxLines MinMaxLines
+  Chart business.Chart
+  //  Labels []int64
+//  Bubbles []Bubble
+//  MinMaxLines MinMaxLines
 }
 
 type MinMaxLines struct {
@@ -57,18 +59,21 @@ type indexHandler struct {
   r business.ChartRepository
 }
 
-func MakeIndexHandler(r business.ChartRepository) indexHandler {
-  return indexHandler{r: r}
+func MakeIndexHandler(r *business.ChartRepository) indexHandler {
+  return indexHandler{r: *r}
 }
 
-func (h indexHandler) index(w http.ResponseWriter, req *http.Request) {
+func (h indexHandler) Index(w http.ResponseWriter, req *http.Request) {
   c := h.r.Load(business.ChartSearchRequest{Ym: time.Now().Format("2006-01")})
 
-  jc, _ := json.Marshal(c)
+  renderTmpl(w, c)
 
-  w.Write([]byte(jc))
+//  jc, _ := json.Marshal(c)
+
+//  w.Write([]byte(jc))
 }
 
+/*
 func index(w http.ResponseWriter, req *http.Request) {
   now := time.Now()
   labels := make([]int64, time.Date(now.Year(), now.Month() + 1, 0, 0, 0, 0, 0, time.UTC).Day())
@@ -171,14 +176,12 @@ func buildMinMaxLine(fcs []internal.Forecast) MinMaxLines {
 
   return minMaxLine
 }
-
+*/
 func renderTmpl(
   w http.ResponseWriter, 
-  labels []int64,
-  bubles []Bubble,
-  minMaxLines MinMaxLines,
+  chart business.Chart,
 ) {
-  hc, err := internal.CreateHttpConf()
+  hc, err := shared.CreateHttpConf()
   if err != nil {
     log.Fatalln(err)
   }
@@ -188,7 +191,7 @@ func renderTmpl(
     log.Fatalf("template parsing failed: %s", err)
   }
 
-  hw := Index{"he!!o", "w0rld", labels, bubles, minMaxLines}
+  hw := Index{"he!!o", "w0rld", chart}
   err = tmpl.Execute(w, hw)
   if err != nil {
     log.Fatalf("template execution: %s", err)

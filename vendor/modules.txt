@@ -1,3 +1,6 @@
+# github.com/rabbitmq/amqp091-go v1.3.0
+## explicit; go 1.15
+github.com/rabbitmq/amqp091-go
 # go.etcd.io/bbolt v1.3.6
 ## explicit; go 1.12
 go.etcd.io/bbolt

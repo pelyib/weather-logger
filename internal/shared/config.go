@@ -1,4 +1,4 @@
-package internal
+package shared
 
 import (
 	"fmt"
@@ -14,17 +14,31 @@ type Cnf struct {
   Lc LoggerCnf `yaml:"logger"`
 }
 
+type Database struct {
+  Folder string `yaml:"folder"`
+  FileName string `yaml:"fileName"`
+}
+
+type Mq struct {
+  User string `yaml:"user"`
+  Password string `yaml:"password"`
+  Domain string `yaml:"domain"`
+  Port uint16 `yaml:"port"`
+  Vhost string `yaml:"vhost"`
+}
+
 type HttpCnf struct {
   Template struct {
     Index string `yaml:"index"`
   } `yaml:"template"`
   Port uint16 `yaml:"port"`
+  Database Database `yaml:"database"`
+  Mq Mq `yaml:"mq"`
 }
 
 type LoggerCnf struct {
-  Database struct {
-    Folder string `yaml:"folder"`
-  } `yaml:"database"`
+  Database Database `yaml:"database"`
+  Mq Mq `yaml:"mq"`
   Cities []CityCnf `yaml:"cities"`
   ForecastProviders struct {
     OpenWeather struct {
@@ -52,20 +66,18 @@ func load() (*Cnf, error) {
     return &cnf, nil
   }
 
-	buf, err := ioutil.ReadFile(os.Getenv("CONFIG_FILE"))
+  buf, err := ioutil.ReadFile(os.Getenv("CONFIG_FILE"))
 
   if err != nil {
-		fmt.Printf("File can not be loaded\n")
-		return nil, err
-	}
-	err = yaml.Unmarshal(buf, &cnf)
+    fmt.Printf("File can not be loaded\n")
+    return nil, err
+  }
+  err = yaml.Unmarshal(buf, &cnf)
 
-	if err != nil {
-		fmt.Printf("Invalid YAML file\n")
-		return nil, err
-	}
-
-  fmt.Println("loaded cnf: " + fmt.Sprint(cnf))
+  if err != nil {
+    fmt.Printf("Invalid YAML file\n")
+    return nil, err
+  }
 
   return &cnf, nil
 }
@@ -76,6 +88,10 @@ func CreateHttpConf() (*HttpCnf, error) {
   if err != nil {
     return nil, err
   }
+  fmt.Println("loaded cnf")
+  out, _ := yaml.Marshal(cnf.Hc)
+  fmt.Println(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
+
 
   return &cnf.Hc, nil
 }
@@ -86,6 +102,10 @@ func CreateLoggerConf() (*LoggerCnf, error) {
   if err != nil {
     return nil, err
   }
+
+  fmt.Println("loaded cnf")
+  out, _ := yaml.Marshal(cnf.Lc)
+  fmt.Println(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
 
   return &cnf.Lc, nil
 }

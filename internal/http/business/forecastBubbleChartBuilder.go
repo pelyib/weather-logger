@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/logger/business"
 )
 
 const bubbleR int8 = 2
@@ -14,7 +14,7 @@ type forecastBubbleChartBuilder struct {
   repository ChartRepository
 }
 
-func (b forecastBubbleChartBuilder) Build(fcs []internal.Forecast) {
+func (b forecastBubbleChartBuilder) Build(fcs []business.Forecast) {
   for _, fc := range fcs {
     at, _ := time.Parse(time.RFC3339, fc.At)
 
@@ -45,6 +45,6 @@ func (b forecastBubbleChartBuilder) Build(fcs []internal.Forecast) {
   }
 }
 
-func MakeForecastBubbleChartBuilder(r ChartRepository) chartBuilder {
-  return forecastBubbleChartBuilder{repository: r}
+func MakeForecastBubbleChartBuilder(r *ChartRepository) ChartBuilder {
+  return forecastBubbleChartBuilder{repository: *r}
 }

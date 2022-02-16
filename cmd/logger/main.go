@@ -5,29 +5,59 @@ import (
 	"log"
 
 	"github.com/pelyib/weather-logger/internal"
-	"github.com/pelyib/weather-logger/internal/http/business"
-	"github.com/pelyib/weather-logger/internal/http/out"
+	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/logger/in"
+	"github.com/pelyib/weather-logger/internal/logger/out"
+	"github.com/pelyib/weather-logger/internal/shared"
+	"github.com/pelyib/weather-logger/internal/shared/mq"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-var cnf internal.Cnf
-
 func main() {
-  cnf, err := internal.CreateLoggerConf()
+  cnf, err := shared.CreateLoggerConf()
 
   if err != nil {
     log.Fatalln(err)
   }
-fmt.Println("loading DB")
-  db := internal.MakeDb(cnf)
-fmt.Println("DB loaded")
-  fss := MakeFss(cnf, &db) // TODO inject DB
-fmt.Println("FC service loaded")
-  fcs := fss.get(internal.SearchRequest{})
+  fmt.Println("loading DB")
+  db := internal.MakeDb(&cnf.Database)
+  fmt.Println("DB loaded")
 
-  log.Println("main: Forecasts fetched")
-  cb := business.MakeChartBuilder(out.MakeChartRepository(&db))
-  log.Println("main: chartbuilder built")
-  cb.Build(fcs)
-  log.Println("main: chartbuilder done")
-  add(fcs)
+  conn, err := amqp.Dial(
+    fmt.Sprintf("amqp://%s:%s@%s:%d/%s",
+      cnf.Mq.User,
+      cnf.Mq.Password,
+      cnf.Mq.Domain,
+      cnf.Mq.Port,
+      cnf.Mq.Vhost,
+    ),
+  )
+
+  if err != nil {
+    log.Fatalf("connection.open: %s", err)
+  }
+
+  defer conn.Close()
+
+  c, err := conn.Channel()
+  if err != nil {
+    log.Fatalf("channel.open: %s", err)
+  }
+
+  cons := mq.Consumer{
+    Exchange: "http",
+    Handlers: map[string]mq.Executor{
+      business.COMMAND_FETCH_FORECASTS: in.MakeFetchForecastCommandExecutor(
+        business.MakeForecastProvderPool([]business.ForecastProvider{
+          out.MakeAW(cnf, &db),
+          out.MakeOW(cnf),
+        }),
+        []business.Observer{out.MakeCliObserver(), out.MakeHttpObsercer(c)},
+      ),
+    },
+    C: c,
+  }
+
+  cons.Consume()
 }

@@ -3,6 +3,7 @@ module github.com/pelyib/weather-logger
 go 1.17
 
 require (
+	github.com/rabbitmq/amqp091-go v1.3.0
 	go.etcd.io/bbolt v1.3.6
 	gopkg.in/yaml.v2 v2.4.0
 )

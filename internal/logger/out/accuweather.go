@@ -8,17 +8,18 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pelyib/weather-logger/internal"
+	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 	bolt "go.etcd.io/bbolt"
 )
 
 type AccuWeather struct {
-  cnf *internal.LoggerCnf
+  cnf *shared.LoggerCnf
   db *bolt.DB
 }
 
-func (s AccuWeather) Get(sr internal.SearchRequest) []internal.Forecast {
-  fcs := []internal.Forecast{}
+func (s AccuWeather) Get(searchRequest business.SearchRequest) []business.Forecast {
+  fcs := []business.Forecast{}
 
   client := http.Client{}
   q := url.Values{}
@@ -67,7 +68,7 @@ fmt.Println(s.db.Path())
     }
 
     err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
-fmt.Println("Put done")
+    fmt.Println("Put done")
     if err != nil {
       return err
     }
@@ -101,7 +102,7 @@ fmt.Println("Put done")
 
     fcs = append(
       fcs,
-      internal.Forecast{
+      business.Forecast{
         Source: "AccuWeather",
         Min: df.Temperature.Minimum.Value,
         Max: df.Temperature.Maximum.Value,
@@ -114,7 +115,6 @@ fmt.Println("Put done")
   return fcs
 }
 
-func MakeAW(cnf *internal.LoggerCnf, db *bolt.DB) ExternalProvider {
-  fmt.Println(db.Path())
+func MakeAW(cnf *shared.LoggerCnf, db *bolt.DB) business.ForecastProvider {
   return AccuWeather{cnf: cnf, db: db}
 }

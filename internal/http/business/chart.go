@@ -49,6 +49,16 @@ func (c Chart) MinLineDataset() (Dataset, error) {
   return Dataset{}, errors.New("MinLineDataset not found")
 }
 
+func (c Chart) MaxLineDataset() (Dataset, error) {
+  for _, ds := range c.Datasets {
+    if ds.Type == DatasetTypeLine && ds.Label == DatasetLabelFirecastMax {
+      return ds, nil
+    }
+  }
+
+  return Dataset{}, errors.New("MaxLineDataset not found")
+}
+
 func (c Chart) ForecastBubbleDataset() (Dataset, error) {
   for _, ds := range c.Datasets {
     if ds.Type == DatasetTypeBubble && ds.Label == DatasetLabelForecasts {

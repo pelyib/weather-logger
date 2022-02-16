@@ -6,10 +6,24 @@ services:
       context: .
       target: dev
     volumes:
-      - ./db:/app/db:ro
+      - ./db:/app/db:rw
       - ./configs/config.dev.yaml:/app/config.yaml:ro
       - ./web:/app/web:ro
     ports:
       - "8095:8090"
-    env_file: .env
+    environment:
+      - CONFIG_FILE=/app/config.yaml
     command: /app/http
+  logger:
+    build:
+      dockerfile: ./docker/Dockerfile.logger
+      context: .
+      target: dev
+    volumes:
+      - ./db/dev:/app/db:rw
+      - ./configs/config.dev.yaml:/app/config.yaml:ro
+    environment:
+      - CONFIG_FILE=/app/config.yaml
+    command: /app/logger
+  mq:
+    image: rabbitmq:3.9.13-alpine
