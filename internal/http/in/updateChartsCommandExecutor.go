@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pelyib/weather-logger/internal/http/business"
-	logger "github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 	"github.com/pelyib/weather-logger/internal/shared/mq"
 )
 
@@ -14,11 +14,11 @@ type executor struct {
 }
 
 func (e executor) Execute(msg []byte) {
-  fcs := []logger.Forecast{}
-  err := json.Unmarshal(msg, &fcs)
+  mrs := []shared.MeasurementResult{}
+  err := json.Unmarshal(msg, &mrs)
 
   if err == nil {
-    e.cb.Build(fcs)
+    e.cb.Build(mrs)
     return
   }
 

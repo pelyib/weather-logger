@@ -13,10 +13,3 @@ func (c Command) AsString() string {
   return fmt.Sprintf("command|%s", c.command)
 }
 
-func (c Command) IsFecthForecasts() bool {
-  return c.command == COMMAND_FETCH_FORECASTS
-}
-
-func MakeFetchForecastsCommand() Command {
-  return Command{command: COMMAND_FETCH_FORECASTS}
-}

@@ -12,7 +12,7 @@ import (
 const bucket string = "http"
 
 type InMemmoryRepository struct {
-  charts map[string]business.Chart
+  charts map[string]*business.Chart
   originRepo business.ChartRepository
 }
 
@@ -20,7 +20,7 @@ type DatabaseRepository struct {
   db bbolt.DB
 }
 
-func (repo InMemmoryRepository) Load(searchRequest business.ChartSearchRequest) business.Chart {
+func (repo InMemmoryRepository) Load(searchRequest business.ChartSearchRequest) *business.Chart {
   if _, ok := repo.charts[searchRequest.Ym]; ok {
     return repo.charts[searchRequest.Ym]
   }
@@ -32,7 +32,7 @@ func (repo InMemmoryRepository) Load(searchRequest business.ChartSearchRequest) 
   return c
 }
 
-func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) business.Chart {
+func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *business.Chart {
   var c business.Chart = business.Chart{}
   err := repo.db.View(func(tx *bbolt.Tx) error {
     b := tx.Bucket([]byte(bucket))
@@ -57,14 +57,14 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) b
   if err != nil {
     log.Println("Chart not found, creating empty")
     log.Println(searchRequest.Ym)
-    return business.MakeEmptyChart(searchRequest.Ym)
+    c = business.MakeEmptyChart(searchRequest.Ym)
   }
 
-  return c
+  return &c
 }
 
 func (r InMemmoryRepository) Save(c business.Chart) {
-  r.charts[c.Ym] = c
+  r.charts[c.Ym] = &c
 
   r.originRepo.Save(c)
 }
@@ -76,7 +76,8 @@ func (r DatabaseRepository) Save(c business.Chart) {
     if cjson, err := json.Marshal(c); err != nil {
       return err
     } else {
-      log.Println("chartRepository: saving")
+      log.Println("ChartRepository: saving")
+      log.Println(string(cjson))
       b.Put([]byte(c.Ym), []byte(cjson))
     }
 
@@ -91,7 +92,7 @@ func (r DatabaseRepository) Save(c business.Chart) {
 
 func MakeChartRepository(db *bbolt.DB) business.ChartRepository {
   return InMemmoryRepository{
-    charts: make(map[string]business.Chart, 0),
+    charts: make(map[string]*business.Chart, 0),
     originRepo: DatabaseRepository{
       db: *db,
     },

@@ -1,14 +1,64 @@
 {
-  "rabbit_version": "3.9.13",
+  "users": [
+   {
+      "name": "wl.logger",
+      "password_hash": "",
+      "hashing_algorithm": "",
+      "tags": [
+        
+      ],
+      "limits": {
+        
+      }
+    },
+    {
+      "name": "wl.http",
+      "password_hash": "",
+      "hashing_algorithm": "",
+      "tags": [
+        
+      ],
+      "limits": {
+        
+      }
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "wl"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "wl.logger",
+      "vhost": "wl",
+      "configure": "",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "wl.http",
+      "vhost": "wl",
+      "configure": "",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [
+    
+  ],
   "parameters": [
     
+  ],
+  "global_parameters": [
   ],
   "policies": [
     
   ],
   "queues": [
     {
-      "name": "command|update-forecast",
+      "name": "command",
+      "vhost": "wl",
       "durable": true,
       "auto_delete": false,
       "arguments": {
@@ -19,6 +69,7 @@
   "exchanges": [
     {
       "name": "http",
+      "vhost": "wl",
       "type": "topic",
       "durable": true,
       "auto_delete": false,
@@ -29,6 +80,7 @@
     },
     {
       "name": "logger",
+      "vhost": "wl",
       "type": "topic",
       "durable": true,
       "auto_delete": false,
@@ -41,12 +93,33 @@
   "bindings": [
     {
       "source": "http",
-      "destination": "command|update-forecast",
-      "destination_type": "qeue",
-      "routing_key": "command|update-forecast",
+      "vhost": "wl",
+      "destination": "command",
+      "destination_type": "queue",
+      "routing_key": "update:charts",
+      "arguments": {
+        
+      }
+    },
+    {
+      "source": "logger",
+      "vhost": "wl",
+      "destination": "command",
+      "destination_type": "queue",
+      "routing_key": "fetch:forecasts",
+      "arguments": {
+        
+      }
+    },
+    {
+      "source": "logger",
+      "vhost": "wl",
+      "destination": "command",
+      "destination_type": "queue",
+      "routing_key": "fetch:historical",
       "arguments": {
         
       }
     }
   ]
-}u
+}

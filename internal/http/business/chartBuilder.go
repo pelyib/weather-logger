@@ -3,7 +3,7 @@ package business
 import (
 	"log"
 
-	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 type chartBuilderFacade struct {
@@ -11,20 +11,21 @@ type chartBuilderFacade struct {
 }
 
 type ChartBuilder interface {
-  Build(fcs []business.Forecast)
+  Build(mrs []shared.MeasurementResult)
 }
 
-func (s chartBuilderFacade) Build(fcs []business.Forecast) {
+func (s chartBuilderFacade) Build(mrs []shared.MeasurementResult) {
   for _, b := range s.builders {
     log.Println("chartbuilder: building")
-    b.Build(fcs)
+    b.Build(mrs)
   }
 }
 
 func MakeChartBuilder(r *ChartRepository) ChartBuilder {
   return chartBuilderFacade{
     builders: []ChartBuilder{
-      MakeLineChartBuilder(r),
+      MakeForecastLineChartBuilder(r),
+      MakeHistoricalLineChartBuilder(r),
       MakeForecastBubbleChartBuilder(r),
     },
   }

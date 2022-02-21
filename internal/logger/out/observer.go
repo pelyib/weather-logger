@@ -6,21 +6,29 @@ import (
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type cliObs struct {}
+type cliObs struct {
+  verbose bool
+}
 
 type httpObs struct {
   channel *amqp.Channel
 }
 
-func (cli cliObs) Notify(forecasts []business.Forecast) {
-  fmt.Println(fmt.Sprintf("CLI observer | %d forecasts fetched", len(forecasts)))
+func (cli cliObs) Notify(mrs []shared.MeasurementResult) {
+  fmt.Println(fmt.Sprintf("CLI observer | %d measurements results fethced", len(mrs)))
+
+  if cli.verbose {
+    json, _ := json.Marshal(mrs)
+    fmt.Println(string(json))
+  }
 }
 
-func (http httpObs) Notify(forecasts []business.Forecast) {
-  body, _ := json.Marshal(forecasts)
+func (http httpObs) Notify(mrs []shared.MeasurementResult) {
+  body, _ := json.Marshal(mrs)
 
   msg := amqp.Publishing{
     DeliveryMode: amqp.Persistent,
@@ -38,10 +46,10 @@ func (http httpObs) Notify(forecasts []business.Forecast) {
   }
 }
 
-func MakeCliObserver() business.Observer {
-  return cliObs{}
+func MakeCliObserver(verbose bool) business.Observer {
+  return cliObs{verbose: verbose}
 }
 
-func MakeHttpObsercer(c *amqp.Channel) business.Observer {
+func MakeHttpObserver(c *amqp.Channel) business.Observer {
   return httpObs{c}
 }
