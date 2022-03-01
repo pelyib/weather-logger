@@ -1,8 +1,9 @@
 package in
 
 import (
-	"log"
+	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"time"
 
@@ -53,6 +54,6 @@ func renderTmpl(
   hw := Index{"he!!o", "w0rld", chart}
   err = tmpl.Execute(w, hw)
   if err != nil {
-    log.Fatalf("template execution: %s", err)
+    log.Println(fmt.Sprintf("template execution: %s", err))
   }
 }

@@ -1,12 +1,13 @@
 package out
 
 import (
-  "encoding/json"
-  "errors"
-  "log"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
 
-  "github.com/pelyib/weather-logger/internal/http/business"
-  "go.etcd.io/bbolt"
+	"github.com/pelyib/weather-logger/internal/http/business"
+	"go.etcd.io/bbolt"
 )
 
 const bucket string = "http"
@@ -41,7 +42,7 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *
 
     if v != nil {
       err := json.Unmarshal(v, &c)
-      log.Println("chartRepository: chart found in DB")
+      log.Println("ChartRepository: chart found in DB")
       //log.Println(string(v[:]))
       if err != nil {
         log.Println(err)
@@ -55,8 +56,7 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *
   })
 
   if err != nil {
-    log.Println("Chart not found, creating empty")
-    log.Println(searchRequest.Ym)
+    log.Println(fmt.Sprintf("ChartRepository : Chart not found, creating empty for %s", searchRequest.Ym))
     c = business.MakeEmptyChart(searchRequest.Ym)
   }
 

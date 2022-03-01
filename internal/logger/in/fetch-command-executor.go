@@ -14,7 +14,7 @@ func (executor fetchCommandExecutor) Execute(msg []byte) {
   measurementResults := executor.mrp.GetMeasurement(business.SearchRequest{}) // TODO: Make SearchRequest from msq [botond.pelyi]
 
   for _, observer := range executor.obs {
-    observer.Notify2(measurementResults)
+    observer.Notify(measurementResults)
   }
 }
 

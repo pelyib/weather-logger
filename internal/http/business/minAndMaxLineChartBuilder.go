@@ -30,36 +30,26 @@ func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
 
     chart := b.r.Load(ChartSearchRequest{Ym: at.Format("2006-01")})
 
-    log.Println(len(chart.Datasets))
     min := b.minDs(chart)
-    log.Println(len(chart.Datasets))
     max := b.maxDs(chart)
-    log.Println(len(chart.Datasets))
 
     if v, ok := min.Data[at.Format("02")]; ok {
       if v.Y > mr.Min {
         min.Push(at.Format("02"), Item{X: v.X, Y: mr.Min})
-        //min.Data[at.Format("02")] = Item{X: v.X, Y: mr.Min}
       }
     } else {
       at, _ := time.Parse(time.RFC3339, mr.At)
-      //min.Data[at.Format("02")] = Item{X: at.UnixMilli(), Y: mr.Min}
       min.Push(at.Format("02"), Item{X: at.UnixMilli(), Y: mr.Min})
     }
 
     if v, ok := max.Data[at.Format("02")]; ok {
       if v.Y < mr.Max {
-        //max.Data[at.Format("02")] = Item{X: v.X, Y: mr.Max}
         max.Push(at.Format("02"), Item{X: v.X, Y: mr.Max})
       }
     } else {
       at, _ := time.Parse(time.RFC3339, mr.At)
-      //max.Data[at.Format("02")] = Item{X: at.UnixMilli(), Y: mr.Max}
       max.Push(at.Format("02"), Item{X: at.UnixMilli(), Y: mr.Max})
     }
-
-    log.Println(len(min.Data))
-    log.Println(len(b.minDs(chart).Data))
 
     log.Println(fmt.Sprintf("LineChartBuilder (%s): %s saving", b.mrType, at.Format("2006.01")))
     b.r.Save(*chart)
