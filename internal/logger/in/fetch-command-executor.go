@@ -6,21 +6,21 @@ import (
 )
 
 type fetchCommandExecutor struct {
-  mrp business.MeasurementResultProvider
-  obs []business.Observer
+	mrp business.MeasurementResultProvider
+	obs []business.Observer
 }
 
 func (executor fetchCommandExecutor) Execute(msg []byte) {
-  measurementResults := executor.mrp.GetMeasurement(business.SearchRequest{}) // TODO: Make SearchRequest from msq [botond.pelyi]
+	measurementResults := executor.mrp.GetMeasurement(business.SearchRequest{}) // TODO: Make SearchRequest from msq [botond.pelyi]
 
-  for _, observer := range executor.obs {
-    observer.Notify(measurementResults)
-  }
+	for _, observer := range executor.obs {
+		observer.Notify(measurementResults)
+	}
 }
 
 func MakeFetchCommandExecutor(mrp business.MeasurementResultProvider, obs []business.Observer) mq.Executor {
-  return fetchCommandExecutor{
-    mrp,
-    obs,
-  }
+	return fetchCommandExecutor{
+		mrp,
+		obs,
+	}
 }

@@ -16,140 +16,140 @@ const DatasetLabelHistoricalMin string = "Historical MIN"
 const DatasetLabelHistoricalMax string = "Historical MAX"
 
 type Chart struct {
-  Ym string `json:"ym"`
-  Labels []int64 `json:"labels"`
-  Datasets []*Dataset `json:"datasets"`
+	Ym       string     `json:"ym"`
+	Labels   []int64    `json:"labels"`
+	Datasets []*Dataset `json:"datasets"`
 }
 
 type Dataset struct {
-  Type string `json:"type"`
-  Label string `json:"label"`
-  Data map[string]Item `json:"data"`
+	Type  string          `json:"type"`
+	Label string          `json:"label"`
+	Data  map[string]Item `json:"data"`
 }
 
 type Item struct {
-  X int64 `json:"x"`
-  Y float32 `json:"y"`
-  R int8 `json:"r"`
+	X int64   `json:"x"`
+	Y float32 `json:"y"`
+	R int8    `json:"r"`
 }
 
 type ChartSearchRequest struct {
-  Ym string
+	Ym string
 }
 
 type ChartRepository interface {
-  Load(searchReq ChartSearchRequest) *Chart
-  Save(c Chart)
+	Load(searchReq ChartSearchRequest) *Chart
+	Save(c Chart)
 }
 
 func (c *Chart) ForecastMinLineDataset() *Dataset {
-  ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelForecastMin)
-  if err != nil {
-    c.Datasets = append(c.Datasets, MakeEmptyForecastMinLineDataset())
-    return c.ForecastMinLineDataset()
-  }
+	ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelForecastMin)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyForecastMinLineDataset())
+		return c.ForecastMinLineDataset()
+	}
 
-  return ds
+	return ds
 }
 
 func (c *Chart) ForecastMaxLineDataset() *Dataset {
-  ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelForecastMax)
-  if err != nil {
-    c.Datasets = append(c.Datasets, MakeEmptyForecastMaxLineDataset())
-    return c.ForecastMaxLineDataset()
-  }
+	ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelForecastMax)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyForecastMaxLineDataset())
+		return c.ForecastMaxLineDataset()
+	}
 
-  return ds
+	return ds
 }
 
 func (c *Chart) ForecastBubbleDataset() *Dataset {
-  ds, err := c.selectDataset(DatasetTypeBubble, DatasetLabelForecasts)
-  if err != nil {
-    c.Datasets = append(c.Datasets, MakeEmptyForecastBubbleDataset())
-    return c.ForecastBubbleDataset()
-  }
+	ds, err := c.selectDataset(DatasetTypeBubble, DatasetLabelForecasts)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyForecastBubbleDataset())
+		return c.ForecastBubbleDataset()
+	}
 
-  return ds
+	return ds
 }
 
 func (c *Chart) HistoricalMinLineDataset() *Dataset {
-  ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelHistoricalMin)
-  if err != nil {
-    c.Datasets = append(c.Datasets, MakeEmptyHistoricalMinDataset())
-    return c.HistoricalMinLineDataset()
-  }
+	ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelHistoricalMin)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyHistoricalMinDataset())
+		return c.HistoricalMinLineDataset()
+	}
 
-  return ds
+	return ds
 }
 
 func (c *Chart) HistoricalMaxLineDataset() *Dataset {
-  ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelHistoricalMax)
-  if err != nil {
-    c.Datasets = append(c.Datasets, MakeEmptyHistoricalMaxDataset())
-    return c.HistoricalMaxLineDataset()
-  }
+	ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelHistoricalMax)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyHistoricalMaxDataset())
+		return c.HistoricalMaxLineDataset()
+	}
 
-  return ds
+	return ds
 }
 
 func (ds *Dataset) Push(key string, i Item) {
-  ds.Data[key] = i
+	ds.Data[key] = i
 }
 
 func (c Chart) selectDataset(t string, l string) (*Dataset, error) {
-  for i, ds := range c.Datasets {
-    if ds.Type == t && ds.Label == l {
-      return c.Datasets[i], nil
-    }
-  }
+	for i, ds := range c.Datasets {
+		if ds.Type == t && ds.Label == l {
+			return c.Datasets[i], nil
+		}
+	}
 
-  return &Dataset{}, errors.New(fmt.Sprintf("Dataset (type: %s | label: %s) is missing", t, l))
+	return &Dataset{}, errors.New(fmt.Sprintf("Dataset (type: %s | label: %s) is missing", t, l))
 }
 
 func MakeEmptyChart(Ym string) Chart {
-  ymt, _ := time.Parse("2006-01", Ym)
-  labels := make([]int64, time.Date(ymt.Year(), ymt.Month() +1, 0, 0, 0, 0, 0, time.UTC).Day())
-  for i := range labels {
-    labels[i] = time.Date(ymt.Year(), ymt.Month(), i + 1, 0, 0, 0, 0, time.UTC).UnixMilli()
-  }
+	ymt, _ := time.Parse("2006-01", Ym)
+	labels := make([]int64, time.Date(ymt.Year(), ymt.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day())
+	for i := range labels {
+		labels[i] = time.Date(ymt.Year(), ymt.Month(), i+1, 0, 0, 0, 0, time.UTC).UnixMilli()
+	}
 
-  return Chart{
-    Ym: Ym,
-    Labels: labels,
-    Datasets: []*Dataset{
-      MakeEmptyForecastMinLineDataset(),
-      MakeEmptyForecastMaxLineDataset(),
-      MakeEmptyForecastBubbleDataset(),
-      MakeEmptyHistoricalMaxDataset(),
-      MakeEmptyHistoricalMinDataset(),
-    },
-  }
+	return Chart{
+		Ym:     Ym,
+		Labels: labels,
+		Datasets: []*Dataset{
+			MakeEmptyForecastMinLineDataset(),
+			MakeEmptyForecastMaxLineDataset(),
+			MakeEmptyForecastBubbleDataset(),
+			MakeEmptyHistoricalMaxDataset(),
+			MakeEmptyHistoricalMinDataset(),
+		},
+	}
 }
 
 func MakeEmptyForecastMinLineDataset() *Dataset {
-  return makeEmptyDataset(DatasetTypeLine, DatasetLabelForecastMin)
+	return makeEmptyDataset(DatasetTypeLine, DatasetLabelForecastMin)
 }
 
 func MakeEmptyForecastMaxLineDataset() *Dataset {
-  return makeEmptyDataset(DatasetTypeLine, DatasetLabelForecastMax)
+	return makeEmptyDataset(DatasetTypeLine, DatasetLabelForecastMax)
 }
 
 func MakeEmptyForecastBubbleDataset() *Dataset {
-  return makeEmptyDataset(DatasetTypeBubble, DatasetLabelForecasts)
+	return makeEmptyDataset(DatasetTypeBubble, DatasetLabelForecasts)
 }
 
 func MakeEmptyHistoricalMinDataset() *Dataset {
-  return makeEmptyDataset(DatasetTypeLine, DatasetLabelHistoricalMin)
+	return makeEmptyDataset(DatasetTypeLine, DatasetLabelHistoricalMin)
 }
 
 func MakeEmptyHistoricalMaxDataset() *Dataset {
-  return makeEmptyDataset(DatasetTypeLine, DatasetLabelHistoricalMax)
+	return makeEmptyDataset(DatasetTypeLine, DatasetLabelHistoricalMax)
 }
 
 func makeEmptyDataset(t string, l string) *Dataset {
-  return &Dataset{
-    Type: t,
-    Label: l,
-    Data: map[string]Item{},
-  }
+	return &Dataset{
+		Type:  t,
+		Label: l,
+		Data:  map[string]Item{},
+	}
 }

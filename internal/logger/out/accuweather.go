@@ -14,211 +14,211 @@ import (
 )
 
 type awForecast struct {
-  cnf *shared.LoggerCnf
-  db *bolt.DB
+	cnf *shared.LoggerCnf
+	db  *bolt.DB
 }
 
 type awHistorical struct {
-  cnf *shared.LoggerCnf
+	cnf *shared.LoggerCnf
 }
 
 func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
-  mrs := []shared.MeasurementResult{}
+	mrs := []shared.MeasurementResult{}
 
-  client := http.Client{}
-  q := url.Values{}
-  q.Add("apikey", awh.cnf.ForecastProviders.AccuWeather.AppId)
+	client := http.Client{}
+	q := url.Values{}
+	q.Add("apikey", awh.cnf.ForecastProviders.AccuWeather.AppId)
 
-  req, err := http.NewRequest(
-    "GET",
-    fmt.Sprintf(
-      "http://dataservice.accuweather.com/currentconditions/v1/%s/historical/24",
-      awh.cnf.Cities[0].Locationkey,
-    ),
-    nil,
-  )
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"http://dataservice.accuweather.com/currentconditions/v1/%s/historical/24",
+			awh.cnf.Cities[0].Locationkey,
+		),
+		nil,
+	)
 
-  if err != nil {
-    fmt.Errorf("Can not build request | Reason: ", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Can not build request | Reason: ", err.Error())
+		return mrs
+	}
 
-  req.URL.RawQuery = q.Encode()
+	req.URL.RawQuery = q.Encode()
 
-  res, err := client.Do(req)
+	res, err := client.Do(req)
 
-  if err != nil {
-    fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
+		return mrs
+	}
 
-  defer res.Body.Close()
-  body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
 
-  if err != nil {
-    fmt.Errorf("Response body reading failed", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Response body reading failed", err.Error())
+		return mrs
+	}
 
-  var HistoricalDecodedResponseBody []struct {
-    LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
-	  EpochTime                int64       `json:"EpochTime"`
-	  WeatherText              string      `json:"WeatherText"`
-	  WeatherIcon              int         `json:"WeatherIcon"`
-	  HasPrecipitation         bool        `json:"HasPrecipitation"`
-	  PrecipitationType        interface{} `json:"PrecipitationType"`
-	  IsDayTime                bool        `json:"IsDayTime"`
-	  Temperature              struct {
-		  Metric struct {
-			  Value    float32 `json:"Value"`
-			  Unit     string  `json:"Unit"`
-			  UnitType int     `json:"UnitType"`
-		  } `json:"Metric"`
-		  Imperial struct {
-			  Value    int    `json:"Value"`
-			  Unit     string `json:"Unit"`
-			  UnitType int    `json:"UnitType"`
-		  } `json:"Imperial"`
-    } `json:"Temperature"`  
-    MobileLink string `json:"MobileLink"`
-    Link       string `json:"Link"`
-  }
+	var HistoricalDecodedResponseBody []struct {
+		LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
+		EpochTime                int64       `json:"EpochTime"`
+		WeatherText              string      `json:"WeatherText"`
+		WeatherIcon              int         `json:"WeatherIcon"`
+		HasPrecipitation         bool        `json:"HasPrecipitation"`
+		PrecipitationType        interface{} `json:"PrecipitationType"`
+		IsDayTime                bool        `json:"IsDayTime"`
+		Temperature              struct {
+			Metric struct {
+				Value    float32 `json:"Value"`
+				Unit     string  `json:"Unit"`
+				UnitType int     `json:"UnitType"`
+			} `json:"Metric"`
+			Imperial struct {
+				Value    int    `json:"Value"`
+				Unit     string `json:"Unit"`
+				UnitType int    `json:"UnitType"`
+			} `json:"Imperial"`
+		} `json:"Temperature"`
+		MobileLink string `json:"MobileLink"`
+		Link       string `json:"Link"`
+	}
 
-  json.Unmarshal(body, &HistoricalDecodedResponseBody)
+	json.Unmarshal(body, &HistoricalDecodedResponseBody)
 
-  var min, max float32 = 60.0, -55.0
-  today, _ := time.Parse("2006/01/02", time.Now().Format("2006/01/02"))
-  todayUnixMilli := today.Unix()
+	var min, max float32 = 60.0, -55.0
+	today, _ := time.Parse("2006/01/02", time.Now().Format("2006/01/02"))
+	todayUnixMilli := today.Unix()
 
-  for _, i := range HistoricalDecodedResponseBody {
-    if i.EpochTime < todayUnixMilli {
-      continue
-    }
+	for _, i := range HistoricalDecodedResponseBody {
+		if i.EpochTime < todayUnixMilli {
+			continue
+		}
 
-    if i.Temperature.Metric.Value < min {
-      min = i.Temperature.Metric.Value
-    }
+		if i.Temperature.Metric.Value < min {
+			min = i.Temperature.Metric.Value
+		}
 
-    if i.Temperature.Metric.Value > max {
-      max = i.Temperature.Metric.Value
-    }
-  }
+		if i.Temperature.Metric.Value > max {
+			max = i.Temperature.Metric.Value
+		}
+	}
 
-  mrs = append(
-    mrs,
-    shared.MeasurementResult{
-      Source: "AccuWeather",
-      Type: shared.MeasurementResult_Type_Historical,
-      Min: min,
-      Max: max,
-      At: today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
-      RecordedAt: time.Now().Format(time.RFC3339),
-    },
-  )
+	mrs = append(
+		mrs,
+		shared.MeasurementResult{
+			Source:     "AccuWeather",
+			Type:       shared.MeasurementResult_Type_Historical,
+			Min:        min,
+			Max:        max,
+			At:         today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
+			RecordedAt: time.Now().Format(time.RFC3339),
+		},
+	)
 
-  return mrs
+	return mrs
 }
 
 func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
-  mrs := []shared.MeasurementResult{}
+	mrs := []shared.MeasurementResult{}
 
-  client := http.Client{}
-  q := url.Values{}
-  q.Add("apikey", awf.cnf.ForecastProviders.AccuWeather.AppId)
-  q.Add("metric", "true")
+	client := http.Client{}
+	q := url.Values{}
+	q.Add("apikey", awf.cnf.ForecastProviders.AccuWeather.AppId)
+	q.Add("metric", "true")
 
-  req, err := http.NewRequest(
-    "GET",
-    fmt.Sprintf(
-      "https://dataservice.accuweather.com/forecasts/v1/daily/5day/%s",
-      awf.cnf.Cities[0].Locationkey,
-    ),
-    nil,
-  )
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf(
+			"https://dataservice.accuweather.com/forecasts/v1/daily/5day/%s",
+			awf.cnf.Cities[0].Locationkey,
+		),
+		nil,
+	)
 
-  if err != nil {
-    fmt.Errorf("Can not build request | Reason: ", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Can not build request | Reason: ", err.Error())
+		return mrs
+	}
 
-  req.URL.RawQuery = q.Encode()
+	req.URL.RawQuery = q.Encode()
 
-  res, err := client.Do(req)
+	res, err := client.Do(req)
 
-  if err != nil {
-    fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
+		return mrs
+	}
 
-  defer res.Body.Close()
-  body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
 
-  if err != nil {
-    fmt.Errorf("Response body reading failed", err.Error())
-    return mrs
-  }
+	if err != nil {
+		fmt.Errorf("Response body reading failed", err.Error())
+		return mrs
+	}
 
-  err = awf.db.Update(func(t *bolt.Tx) error {
-    b, err := t.CreateBucketIfNotExists([]byte("accuweather.raw_response"))
+	err = awf.db.Update(func(t *bolt.Tx) error {
+		b, err := t.CreateBucketIfNotExists([]byte("accuweather.raw_response"))
 
-    if err != nil {
-      fmt.Errorf("Bucket creation / opening failed", err.Error())
-      return err
-    }
+		if err != nil {
+			fmt.Errorf("Bucket creation / opening failed", err.Error())
+			return err
+		}
 
-    err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
-    fmt.Println("Put done")
-    if err != nil {
-      return err
-    }
+		err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
+		fmt.Println("Put done")
+		if err != nil {
+			return err
+		}
 
-    return nil
-  })
+		return nil
+	})
 
-  if err != nil {
-    fmt.Errorf("Connectiong to DB failed, cannot be saved", err.Error())
-  }
+	if err != nil {
+		fmt.Errorf("Connectiong to DB failed, cannot be saved", err.Error())
+	}
 
-  var decBody struct {
-    DailyForecasts []struct {
-      Date string
-      Temperature struct {
-        Minimum struct {
-          Value float32
-        }
-        Maximum struct {
-          Value float32
-        }
-      }
-    }
-  }
+	var decBody struct {
+		DailyForecasts []struct {
+			Date        string
+			Temperature struct {
+				Minimum struct {
+					Value float32
+				}
+				Maximum struct {
+					Value float32
+				}
+			}
+		}
+	}
 
-  json.Unmarshal(body, &decBody)
+	json.Unmarshal(body, &decBody)
 
-  for _, df := range decBody.DailyForecasts {
-    at, _ := time.Parse(time.RFC3339, df.Date)
-    at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
+	for _, df := range decBody.DailyForecasts {
+		at, _ := time.Parse(time.RFC3339, df.Date)
+		at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
 
-    mrs = append(
-      mrs,
-      shared.MeasurementResult{
-        Source: "AccuWeather",
-        Type: shared.MeasurementResult_Type_Forecast,
-        Min: df.Temperature.Minimum.Value,
-        Max: df.Temperature.Maximum.Value,
-        At: at.Format(time.RFC3339),
-        RecordedAt: time.Now().Format(time.RFC3339),
-      },
-    )
-  }
+		mrs = append(
+			mrs,
+			shared.MeasurementResult{
+				Source:     "AccuWeather",
+				Type:       shared.MeasurementResult_Type_Forecast,
+				Min:        df.Temperature.Minimum.Value,
+				Max:        df.Temperature.Maximum.Value,
+				At:         at.Format(time.RFC3339),
+				RecordedAt: time.Now().Format(time.RFC3339),
+			},
+		)
+	}
 
-  return mrs
+	return mrs
 }
 
 func MakeAccuWeatherForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB) business.MeasurementResultProvider {
-  return awForecast{cnf: cnf, db: db}
+	return awForecast{cnf: cnf, db: db}
 }
 
 func MakeAccuWeatherHistoricalProvider(cnf *shared.LoggerCnf) business.MeasurementResultProvider {
-  return awHistorical{cnf: cnf}
+	return awHistorical{cnf: cnf}
 }

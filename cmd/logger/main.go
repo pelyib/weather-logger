@@ -59,13 +59,13 @@ func main() {
 				business.MakeMeasurementResultProviderPool(
 					[]business.MeasurementResultProvider{
 						out.MakeAccuWeatherHistoricalProvider(cnf),
-            out.MakeOpenWeatherHistoricalProvider(cnf),
-          },
+						out.MakeOpenWeatherHistoricalProvider(cnf),
+					},
 				),
 				[]business.Observer{
-          out.MakeCliObserver(true),
-          out.MakeHttpObserver(c),
-        },
+					out.MakeCliObserver(true),
+					out.MakeHttpObserver(c),
+				},
 			),
 		},
 		C: c,

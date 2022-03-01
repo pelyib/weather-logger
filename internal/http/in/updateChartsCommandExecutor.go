@@ -10,22 +10,22 @@ import (
 )
 
 type executor struct {
-  cb business.ChartBuilder
+	cb business.ChartBuilder
 }
 
 func (e executor) Execute(msg []byte) {
-  mrs := []shared.MeasurementResult{}
-  err := json.Unmarshal(msg, &mrs)
+	mrs := []shared.MeasurementResult{}
+	err := json.Unmarshal(msg, &mrs)
 
-  if err == nil {
-    e.cb.Build(mrs)
-    return
-  }
+	if err == nil {
+		e.cb.Build(mrs)
+		return
+	}
 
-  fmt.Println("UpdChartCmdExecutor | could not unmarshal message")
-  fmt.Println(err)
+	fmt.Println("UpdChartCmdExecutor | could not unmarshal message")
+	fmt.Println(err)
 }
 
 func MakeUpdateChartsCommandExecutor(cb business.ChartBuilder) mq.Executor {
-  return executor{cb: cb}
+	return executor{cb: cb}
 }

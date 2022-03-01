@@ -7,26 +7,26 @@ import (
 )
 
 type chartBuilderFacade struct {
-  builders []ChartBuilder
+	builders []ChartBuilder
 }
 
 type ChartBuilder interface {
-  Build(mrs []shared.MeasurementResult)
+	Build(mrs []shared.MeasurementResult)
 }
 
 func (s chartBuilderFacade) Build(mrs []shared.MeasurementResult) {
-  for _, b := range s.builders {
-    log.Println("chartbuilder: building")
-    b.Build(mrs)
-  }
+	for _, b := range s.builders {
+		log.Println("chartbuilder: building")
+		b.Build(mrs)
+	}
 }
 
 func MakeChartBuilder(r *ChartRepository) ChartBuilder {
-  return chartBuilderFacade{
-    builders: []ChartBuilder{
-      MakeForecastLineChartBuilder(r),
-      MakeHistoricalLineChartBuilder(r),
-      MakeForecastBubbleChartBuilder(r),
-    },
-  }
+	return chartBuilderFacade{
+		builders: []ChartBuilder{
+			MakeForecastLineChartBuilder(r),
+			MakeHistoricalLineChartBuilder(r),
+			MakeForecastBubbleChartBuilder(r),
+		},
+	}
 }
