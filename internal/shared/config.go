@@ -15,9 +15,9 @@ type Cnf struct {
 }
 
 type Database struct {
-	Folder   string `yaml:"folder"`
-	FileName string `yaml:"fileName"`
-  Buckets  []string `yaml:"buckets"`
+	Folder   string   `yaml:"folder"`
+	FileName string   `yaml:"fileName"`
+	Buckets  []string `yaml:"buckets"`
 }
 
 type Mq struct {

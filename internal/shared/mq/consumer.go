@@ -11,7 +11,7 @@ type Consumer struct {
 	Exchange string
 	Handlers map[string]Executor
 	C        *amqp.Channel
-  L shared.Logger
+	L        shared.Logger
 }
 
 type Executor interface {
@@ -23,7 +23,7 @@ func (c Consumer) Consume() error {
 
 	if err != nil {
 		c.L.Error("Can not consume from `command` queue")
-    return err
+		return err
 	}
 
 	c.L.Info("start to listening")
@@ -47,5 +47,5 @@ func (c Consumer) Consume() error {
 	c.L.Info(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 
-  return nil
+	return nil
 }

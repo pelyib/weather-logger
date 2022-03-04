@@ -12,12 +12,12 @@ import (
 
 type cliObs struct {
 	verbose bool
-  l shared.Logger
+	l       shared.Logger
 }
 
 type httpObs struct {
 	channel *amqp.Channel
-  l shared.Logger
+	l       shared.Logger
 }
 
 func (cli cliObs) Notify(mrs []shared.MeasurementResult) {
@@ -49,9 +49,9 @@ func (http httpObs) Notify(mrs []shared.MeasurementResult) {
 }
 
 func MakeCliObserver(verbose bool, l shared.Logger) business.Observer {
-  return cliObs{verbose: verbose, l: l}
+	return cliObs{verbose: verbose, l: l}
 }
 
 func MakeHttpObserver(c *amqp.Channel, l shared.Logger) business.Observer {
-  return httpObs{channel: c, l: l}
+	return httpObs{channel: c, l: l}
 }
