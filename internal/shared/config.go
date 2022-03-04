@@ -17,6 +17,7 @@ type Cnf struct {
 type Database struct {
 	Folder   string `yaml:"folder"`
 	FileName string `yaml:"fileName"`
+  Buckets  []string `yaml:"buckets"`
 }
 
 type Mq struct {
@@ -60,51 +61,50 @@ type CityCnf struct {
 
 var cnf Cnf
 
-func load() (*Cnf, error) {
+func load(l Logger) (*Cnf, error) {
 	if len(cnf.Ver) > 0 {
-		fmt.Println("cnf already loaded")
+		l.Info("cnf already loaded")
 		return &cnf, nil
 	}
 
 	buf, err := ioutil.ReadFile(os.Getenv("CONFIG_FILE"))
 
 	if err != nil {
-		fmt.Printf("File can not be loaded\n")
+		l.Error("File can not be loaded")
 		return nil, err
 	}
 	err = yaml.Unmarshal(buf, &cnf)
 
 	if err != nil {
-		fmt.Printf("Invalid YAML file\n")
+		l.Error("Invalid YAML file")
 		return nil, err
 	}
 
 	return &cnf, nil
 }
 
-func CreateHttpConf() (*HttpCnf, error) {
-	cnf, err := load()
+func CreateHttpConf(l Logger) (*HttpCnf, error) {
+	cnf, err := load(l)
 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("loaded cnf")
+
 	out, _ := yaml.Marshal(cnf.Hc)
-	fmt.Println(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
+	l.Info(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
 
 	return &cnf.Hc, nil
 }
 
-func CreateLoggerConf() (*LoggerCnf, error) {
-	cnf, err := load()
+func CreateLoggerConf(l Logger) (*LoggerCnf, error) {
+	cnf, err := load(l)
 
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("loaded cnf")
 	out, _ := yaml.Marshal(cnf.Lc)
-	fmt.Println(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
+	l.Info(fmt.Sprintf("loaded cnf\n%s", string(out)))
 
 	return &cnf.Lc, nil
 }

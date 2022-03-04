@@ -13,6 +13,9 @@ logger:
   database:
     folder: "/path/to/database/"
     fileName: "filename.db"
+    buckets:
+      - "logger-bucket-a"
+      - "logger-bucket-b"
   mq:
     user: "mq-user"
     password: "mq-password"
@@ -32,3 +35,6 @@ http:
   database:
     folder: "/path/to/database/"
     fileName: "filename.db"
+    buckets: 
+      - "http-bucket-a"
+      - "http-bucket-b"

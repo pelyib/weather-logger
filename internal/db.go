@@ -2,25 +2,27 @@ package internal
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/pelyib/weather-logger/internal/shared"
 	bolt "go.etcd.io/bbolt"
 )
 
-func MakeDb(cnf *shared.Database) bolt.DB {
+func MakeDb(cnf *shared.Database, l shared.Logger) bolt.DB {
 	db, err := bolt.Open(fmt.Sprintf("%s%s", cnf.Folder, cnf.FileName), 0600, nil)
 	if err != nil {
-		log.Fatal(err)
+    l.Error(err.Error())
 	}
 
 	db.Update(func(tx *bolt.Tx) error {
-		tx.CreateBucketIfNotExists([]byte("http")) // TODO: fetch it from Config
+    for _, bucket := range cnf.Buckets {
+      _, err := tx.CreateBucketIfNotExists([]byte(bucket))
 
-		// TODO: create another buckets
-		// TODO: check errors
+      if err != nil {
+        l.Error(err.Error())
+      }
+    }
 
-		return nil
+    return nil
 	})
 
 	return *db

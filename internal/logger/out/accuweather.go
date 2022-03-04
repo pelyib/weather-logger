@@ -16,10 +16,12 @@ import (
 type awForecast struct {
 	cnf *shared.LoggerCnf
 	db  *bolt.DB
+	l   shared.Logger
 }
 
 type awHistorical struct {
 	cnf *shared.LoggerCnf
+	l   shared.Logger
 }
 
 func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
@@ -39,7 +41,7 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 	)
 
 	if err != nil {
-		fmt.Errorf("Can not build request | Reason: ", err.Error())
+		awh.l.Error(fmt.Sprintf("Could not build http.request, reason: %s", err.Error()))
 		return mrs
 	}
 
@@ -48,7 +50,7 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 	res, err := client.Do(req)
 
 	if err != nil {
-		fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
+		awh.l.Error(fmt.Sprintf("Fetching Forecasts from Accuweather failed, reason: %s", err.Error()))
 		return mrs
 	}
 
@@ -56,7 +58,7 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 	body, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		fmt.Errorf("Response body reading failed", err.Error())
+		awh.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return mrs
 	}
 
@@ -137,7 +139,7 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 	)
 
 	if err != nil {
-		fmt.Errorf("Can not build request | Reason: ", err.Error())
+		awf.l.Error(fmt.Sprintf("Could not build request, reason: %s", err.Error()))
 		return mrs
 	}
 
@@ -146,7 +148,7 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 	res, err := client.Do(req)
 
 	if err != nil {
-		fmt.Errorf("Fetching Forecasts from Accuweather failed", err.Error())
+		awf.l.Error(fmt.Sprintf("Fetching Forecasts from Accuweather failed, reason: %s", err.Error()))
 		return mrs
 	}
 
@@ -154,20 +156,15 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 	body, err := io.ReadAll(res.Body)
 
 	if err != nil {
-		fmt.Errorf("Response body reading failed", err.Error())
+		awf.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return mrs
 	}
 
 	err = awf.db.Update(func(t *bolt.Tx) error {
-		b, err := t.CreateBucketIfNotExists([]byte("accuweather.raw_response"))
-
-		if err != nil {
-			fmt.Errorf("Bucket creation / opening failed", err.Error())
-			return err
-		}
+		b := t.Bucket([]byte("accuweather.raw_response"))
 
 		err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
-		fmt.Println("Put done")
+		awf.l.Info("Put done")
 		if err != nil {
 			return err
 		}
@@ -176,7 +173,7 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 	})
 
 	if err != nil {
-		fmt.Errorf("Connectiong to DB failed, cannot be saved", err.Error())
+		awf.l.Error(fmt.Sprintf("Failed to connect to DB, could not save, reason: %s", err.Error()))
 	}
 
 	var decBody struct {
@@ -215,10 +212,10 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 	return mrs
 }
 
-func MakeAccuWeatherForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB) business.MeasurementResultProvider {
-	return awForecast{cnf: cnf, db: db}
+func MakeAccuWeatherForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB, l shared.Logger) business.MeasurementResultProvider {
+	return awForecast{cnf: cnf, db: db, l: l}
 }
 
-func MakeAccuWeatherHistoricalProvider(cnf *shared.LoggerCnf) business.MeasurementResultProvider {
-	return awHistorical{cnf: cnf}
+func MakeAccuWeatherHistoricalProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
+	return awHistorical{cnf: cnf, l: l}
 }

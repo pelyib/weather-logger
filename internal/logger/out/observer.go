@@ -12,18 +12,20 @@ import (
 
 type cliObs struct {
 	verbose bool
+  l shared.Logger
 }
 
 type httpObs struct {
 	channel *amqp.Channel
+  l shared.Logger
 }
 
 func (cli cliObs) Notify(mrs []shared.MeasurementResult) {
-	fmt.Println(fmt.Sprintf("CLI observer | %d measurements results fethced", len(mrs)))
+	cli.l.Info(fmt.Sprintf("CLI observer | %d measurements results fethced", len(mrs)))
 
 	if cli.verbose {
 		json, _ := json.Marshal(mrs)
-		fmt.Println(string(json))
+		cli.l.Info(string(json))
 	}
 }
 
@@ -40,16 +42,16 @@ func (http httpObs) Notify(mrs []shared.MeasurementResult) {
 	err := http.channel.Publish("http", "update:charts", false, false, msg)
 
 	if err != nil {
-		fmt.Println("HTTP Observer | Could not send MQ message")
+		http.l.Warning("Could not send message")
 	} else {
-		fmt.Println("HTTP Observer | published")
+		http.l.Info("Message published")
 	}
 }
 
-func MakeCliObserver(verbose bool) business.Observer {
-	return cliObs{verbose: verbose}
+func MakeCliObserver(verbose bool, l shared.Logger) business.Observer {
+  return cliObs{verbose: verbose, l: l}
 }
 
-func MakeHttpObserver(c *amqp.Channel) business.Observer {
-	return httpObs{c}
+func MakeHttpObserver(c *amqp.Channel, l shared.Logger) business.Observer {
+  return httpObs{channel: c, l: l}
 }
