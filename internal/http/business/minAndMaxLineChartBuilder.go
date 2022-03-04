@@ -2,7 +2,6 @@ package business
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
@@ -13,16 +12,17 @@ type minAndMaxLineChartBuilder struct {
 	minDs  datasetSelector
 	maxDs  datasetSelector
 	r      ChartRepository
+	l      shared.Logger
 }
 
 type datasetSelector func(c *Chart) *Dataset
 
 func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
-	log.Println(fmt.Sprintf("lineChartBuilder (%s): start", b.mrType))
+	b.l.Info(fmt.Sprintf("lineChartBuilder (%s): start", b.mrType))
 
 	for _, mr := range mrs {
 		if mr.Type != b.mrType {
-			log.Println(fmt.Sprintf("LineChartBuilder (%s): skipping measurement result", b.mrType))
+			b.l.Info(fmt.Sprintf("LineChartBuilder (%s): skipping measurement result", b.mrType))
 
 			continue
 		}
@@ -52,33 +52,29 @@ func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
 			max.Push(at.Format("02"), Item{X: at.UnixMilli(), Y: mr.Max})
 		}
 
-		log.Println(fmt.Sprintf("LineChartBuilder (%s): %s saving", b.mrType, at.Format("2006.01")))
+		b.l.Info(fmt.Sprintf("(%s): %s saving", b.mrType, at.Format("2006.01")))
 		b.r.Save(*chart)
 	}
 
-	log.Println(fmt.Sprintf("LineChartBuilder (%s): finished", b.mrType))
+	b.l.Info(fmt.Sprintf("(%s): finished", b.mrType))
 }
 
-func MakeForecastLineChartBuilder(r *ChartRepository) ChartBuilder {
+func MakeForecastLineChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {
 	return minAndMaxLineChartBuilder{
 		mrType: shared.MeasurementResult_Type_Forecast,
 		r:      *r,
 		minDs:  func(c *Chart) *Dataset { return c.ForecastMinLineDataset() },
 		maxDs:  func(c *Chart) *Dataset { return c.ForecastMaxLineDataset() },
+		l:      l,
 	}
 }
 
-func MakeHistoricalLineChartBuilder(r *ChartRepository) ChartBuilder {
+func MakeHistoricalLineChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {
 	return minAndMaxLineChartBuilder{
 		mrType: shared.MeasurementResult_Type_Historical,
 		r:      *r,
 		minDs:  func(c *Chart) *Dataset { return c.HistoricalMinLineDataset() },
-		maxDs: func(c *Chart) *Dataset {
-			fmt.Println(len(c.Datasets))
-			d := c.HistoricalMaxLineDataset()
-			fmt.Println(len(c.Datasets))
-
-			return d
-		},
+		maxDs:  func(c *Chart) *Dataset { return c.HistoricalMaxLineDataset() },
+		l:      l,
 	}
 }

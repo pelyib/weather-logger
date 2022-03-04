@@ -91,7 +91,7 @@ func CreateHttpConf(l Logger) (*HttpCnf, error) {
 	}
 
 	out, _ := yaml.Marshal(cnf.Hc)
-	l.Info(fmt.Sprintf("Config loader | loaded cnf\n%s", string(out)))
+	l.Info(fmt.Sprintf("Loaded cnf\n%s", string(out)))
 
 	return &cnf.Hc, nil
 }
@@ -104,7 +104,7 @@ func CreateLoggerConf(l Logger) (*LoggerCnf, error) {
 	}
 
 	out, _ := yaml.Marshal(cnf.Lc)
-	l.Info(fmt.Sprintf("loaded cnf\n%s", string(out)))
+	l.Info(fmt.Sprintf("Loaded cnf\n%s", string(out)))
 
 	return &cnf.Lc, nil
 }

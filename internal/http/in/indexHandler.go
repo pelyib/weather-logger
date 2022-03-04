@@ -24,29 +24,25 @@ type Index struct {
 }
 
 type indexHandler struct {
-	r business.ChartRepository
+	cnf *shared.HttpCnf
+	r   business.ChartRepository
 }
 
-func MakeIndexHandler(r *business.ChartRepository) indexHandler {
-	return indexHandler{r: *r}
+func MakeIndexHandler(cnf *shared.HttpCnf, r *business.ChartRepository) indexHandler {
+	return indexHandler{cnf: cnf, r: *r}
 }
 
 func (h indexHandler) Index(w http.ResponseWriter, req *http.Request) {
 	c := h.r.Load(business.ChartSearchRequest{Ym: time.Now().Format("2006-01")})
 
-	renderTmpl(w, *c)
+	h.renderTmpl(w, *c)
 }
 
-func renderTmpl(
+func (h indexHandler) renderTmpl(
 	w http.ResponseWriter,
 	chart business.Chart,
 ) {
-	hc, err := shared.CreateHttpConf()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	tmpl, err := template.ParseFiles(hc.Template.Index)
+	tmpl, err := template.ParseFiles(h.cnf.Template.Index)
 	if err != nil {
 		log.Fatalf("template parsing failed: %s", err)
 	}

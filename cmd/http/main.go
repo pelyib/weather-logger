@@ -14,20 +14,23 @@ import (
 )
 
 func main() {
-	cnf, err := shared.CreateHttpConf(shared.MakeCliLogger("http", "Config"))
+	cnf, err := shared.CreateHttpConf(shared.MakeCliLogger(shared.App_Http, "Config"))
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	db := internal.MakeDb(&cnf.Database, shared.MakeCliLogger("http", "DB"))
-	cr := out.MakeChartRepository(&db)
+	db := internal.MakeDb(&cnf.Database, shared.MakeCliLogger(shared.App_Http, "DB"))
+	cr := out.MakeChartRepository(
+		&db,
+		shared.MakeCliLogger(shared.App_Http, "ChartRepository"),
+	)
 
 	go func() {
 		consume(cnf, &cr)
 	}()
 
-	ih := in.MakeIndexHandler(&cr)
+	ih := in.MakeIndexHandler(cnf, &cr)
 
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		ih.Index(rw, r)
@@ -47,6 +50,7 @@ func consume(cnf *shared.HttpCnf, cr *business.ChartRepository) {
 			),
 		},
 		C: c,
+		L: shared.MakeCliLogger(shared.App_Http, "MQ.Consumer"),
 	}
 
 	cons.Consume()

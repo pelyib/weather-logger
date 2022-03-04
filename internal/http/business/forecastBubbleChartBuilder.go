@@ -2,7 +2,6 @@ package business
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
@@ -12,11 +11,11 @@ const bubbleR int8 = 2
 
 type forecastBubbleChartBuilder struct {
 	repository ChartRepository
+	l          shared.Logger
 }
 
 func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
-
-	log.Println(fmt.Sprintf("Bubblebuilder: star"))
+	b.l.Info("start building")
 	for _, mr := range mrs {
 		if mr.Type != shared.MeasurementResult_Type_Forecast {
 			continue
@@ -45,9 +44,9 @@ func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
 		b.repository.Save(*chart)
 	}
 
-	log.Println("Bubblebuilder: finished")
+	b.l.Info("building finished")
 }
 
-func MakeForecastBubbleChartBuilder(r *ChartRepository) ChartBuilder {
-	return forecastBubbleChartBuilder{repository: *r}
+func MakeForecastBubbleChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {
+	return forecastBubbleChartBuilder{repository: *r, l: l}
 }

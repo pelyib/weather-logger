@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/pelyib/weather-logger/internal/http/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 	"go.etcd.io/bbolt"
 )
 
@@ -19,6 +19,7 @@ type InMemmoryRepository struct {
 
 type DatabaseRepository struct {
 	db bbolt.DB
+	l  shared.Logger
 }
 
 func (repo InMemmoryRepository) Load(searchRequest business.ChartSearchRequest) *business.Chart {
@@ -42,10 +43,9 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *
 
 		if v != nil {
 			err := json.Unmarshal(v, &c)
-			log.Println("ChartRepository: chart found in DB")
-			//log.Println(string(v[:]))
+			repo.l.Info("Chart found in datebase")
 			if err != nil {
-				log.Println(err)
+				repo.l.Error(err.Error())
 				return err
 			} else {
 				return nil
@@ -56,7 +56,7 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *
 	})
 
 	if err != nil {
-		log.Println(fmt.Sprintf("ChartRepository : Chart not found, creating empty for %s", searchRequest.Ym))
+		repo.l.Info(fmt.Sprintf("Chart not found, creating empty for %s", searchRequest.Ym))
 		c = business.MakeEmptyChart(searchRequest.Ym)
 	}
 
@@ -76,8 +76,7 @@ func (r DatabaseRepository) Save(c business.Chart) {
 		if cjson, err := json.Marshal(c); err != nil {
 			return err
 		} else {
-			log.Println("ChartRepository: saving")
-			log.Println(string(cjson))
+			r.l.Info("saving")
 			b.Put([]byte(c.Ym), []byte(cjson))
 		}
 
@@ -85,16 +84,16 @@ func (r DatabaseRepository) Save(c business.Chart) {
 	})
 
 	if err != nil {
-		log.Println("chartRepository: saving failed")
-		log.Println(err)
+		r.l.Error(fmt.Sprintf("Saving failed, reason: %s", err.Error()))
 	}
 }
 
-func MakeChartRepository(db *bbolt.DB) business.ChartRepository {
+func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository {
 	return InMemmoryRepository{
 		charts: make(map[string]*business.Chart, 0),
 		originRepo: DatabaseRepository{
 			db: *db,
+			l:  l,
 		},
 	}
 }
