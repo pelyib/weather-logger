@@ -10,7 +10,7 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const bucket string = "http"
+const bucket string = "http" // Use the same bucket name as in the config [botond.pelyi]
 
 type InMemmoryRepository struct {
 	charts     map[string]*business.Chart

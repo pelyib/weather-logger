@@ -44,20 +44,21 @@
               },
               grid: {
                 lineWidth: function(context) {
-                  if (context.tick.value == today) {
+                  if (context.tick !== undefined && context.tick.value == today) {
                     return 3;
                   }
 
                   return 1;
                 },
                 color: function(context) {
-                  if (context.tick.value == today) {
+                  if (context.tick !== undefined && context.tick.value == today) {
                     return "rgba(255,0,0,0.2)";
                   }
 
                   return Chart.defaults.borderColor;
                 }
-              }
+              },
+              stacked: true
             },
             yAxes: {
               title: {
@@ -109,6 +110,22 @@
                 {{range .Data}}{x:{{.X}}, y:{{.Y}}, r:{{.R}}},
                 {{end}}]
             },{{end}}
+                  {
+                type: "bar",
+                label: "MIN range",
+                            data: [
+                                    [],[],[],[16, 16.2],
+                                    [-4.4, 1.01],
+                                  ]
+                        }, {
+                type: "bar",
+                label: "MAX range",
+                            data: [
+                                    [],[],[],[],
+                                    [8, 10],
+                                  ]
+                        }
+
           ]
         }
       });

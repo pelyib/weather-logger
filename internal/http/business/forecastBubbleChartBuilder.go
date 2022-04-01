@@ -15,7 +15,7 @@ type forecastBubbleChartBuilder struct {
 }
 
 func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
-	b.l.Info("start building")
+	b.l.Info("(forecast): start building")
 	for _, mr := range mrs {
 		if mr.Type != shared.MeasurementResult_Type_Forecast {
 			continue
@@ -36,7 +36,7 @@ func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
 		}
 
 		if v, ok := dataset.Data[maxKey]; ok {
-			dataset.Push(maxKey, Item{X: v.X, Y: v.Y, R: bubbleR})
+			dataset.Push(maxKey, Item{X: v.X, Y: v.Y, R: v.R + bubbleR})
 		} else {
 			dataset.Push(maxKey, Item{X: at.UnixMilli(), Y: mr.Max, R: bubbleR})
 		}
@@ -44,7 +44,7 @@ func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
 		b.repository.Save(*chart)
 	}
 
-	b.l.Info("building finished")
+	b.l.Info("(forecast): building finished")
 }
 
 func MakeForecastBubbleChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {

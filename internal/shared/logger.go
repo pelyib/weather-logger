@@ -8,6 +8,7 @@ import (
 
 const App_Logger string = "logger"
 const App_Http string = "http"
+const App_Commander string = "commander"
 
 type Logger interface {
 	Info(msg string)

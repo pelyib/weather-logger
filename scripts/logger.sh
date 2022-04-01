@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 cd $(dirname "$0")
 
 # TODO: validate files and folders [botond.pelyi]
