@@ -8,10 +8,13 @@ import (
 
 const DatasetTypeLine string = "line"
 const DatasetTypeBubble string = "bubble"
+const DatasetTypeBar string = "bar"
 
 const DatasetLabelForecastMin string = "Forecast MIN"
 const DatasetLabelForecastMax string = "Forecast MAX"
 const DatasetLabelForecasts string = "Forecasts"
+const DatasetLabelForecastMinRange string = "Forecast MIN range"
+const DatasetLabelForecastMaxRange string = "Forecast MAX range"
 const DatasetLabelHistoricalMin string = "Historical MIN"
 const DatasetLabelHistoricalMax string = "Historical MAX"
 
@@ -72,6 +75,26 @@ func (c *Chart) ForecastBubbleDataset() *Dataset {
 	return ds
 }
 
+func (c *Chart) ForecastMaxBarDataset() *Dataset {
+	ds, err := c.selectDataset(DatasetTypeBar, DatasetLabelForecastMaxRange)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyForecastMaxBarDataset())
+		return c.ForecastMaxBarDataset()
+	}
+
+	return ds
+}
+
+func (c *Chart) ForecastMinBarDataset() *Dataset {
+	ds, err := c.selectDataset(DatasetTypeBar, DatasetLabelForecastMinRange)
+	if err != nil {
+		c.Datasets = append(c.Datasets, MakeEmptyForecastMinBarDataset())
+		return c.ForecastMinBarDataset()
+	}
+
+	return ds
+}
+
 func (c *Chart) HistoricalMinLineDataset() *Dataset {
 	ds, err := c.selectDataset(DatasetTypeLine, DatasetLabelHistoricalMin)
 	if err != nil {
@@ -91,7 +114,6 @@ func (c *Chart) HistoricalMaxLineDataset() *Dataset {
 
 	return ds
 }
-
 func (ds *Dataset) Push(key string, i Item) {
 	ds.Data[key] = i
 }
@@ -136,6 +158,14 @@ func MakeEmptyForecastMaxLineDataset() *Dataset {
 
 func MakeEmptyForecastBubbleDataset() *Dataset {
 	return makeEmptyDataset(DatasetTypeBubble, DatasetLabelForecasts)
+}
+
+func MakeEmptyForecastMaxBarDataset() *Dataset {
+	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecasts)
+}
+
+func MakeEmptyForecastMinBarDataset() *Dataset {
+	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecasts)
 }
 
 func MakeEmptyHistoricalMinDataset() *Dataset {
