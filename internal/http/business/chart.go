@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 const DatasetTypeLine string = "line"
@@ -18,10 +20,24 @@ const DatasetLabelForecastMaxRange string = "Forecast MAX range"
 const DatasetLabelHistoricalMin string = "Historical MIN"
 const DatasetLabelHistoricalMax string = "Historical MAX"
 
+// TODO implement Chart interface, use it everywhere [botond.pelyi]
+type ChartI interface {
+	Loc() shared.GeoLocation
+}
+
+type ChartSearchRequestI interface {
+	GetYm() string
+	HasLoc() bool
+	GetLoc() shared.Location
+	WithoutLoc() ChartSearchRequestI
+}
+
 type Chart struct {
-	Ym       string     `json:"ym"`
+	Ym       string `json:"ym"`
+	Loc      shared.Location
 	Labels   []int64    `json:"labels"`
 	Datasets []*Dataset `json:"datasets"`
+	IsNew    bool
 }
 
 type Dataset struct {
@@ -37,11 +53,32 @@ type Item struct {
 }
 
 type ChartSearchRequest struct {
-	Ym string
+	Ym  string
+	Loc shared.Location
+}
+
+func (csr ChartSearchRequest) GetYm() string {
+	return csr.Ym
+}
+
+func (csr ChartSearchRequest) HasLoc() bool {
+	return csr.Loc != nil
+}
+
+func (csr ChartSearchRequest) GetLoc() shared.Location {
+	return csr.Loc
+}
+
+// TODO csr should be immutable [botond.pelyi]
+func (csr ChartSearchRequest) WithoutLoc() ChartSearchRequestI {
+	copy := csr
+	copy.Loc = nil
+
+	return copy
 }
 
 type ChartRepository interface {
-	Load(searchReq ChartSearchRequest) *Chart
+	Load(csr ChartSearchRequestI) *Chart
 	Save(c Chart)
 }
 
@@ -145,6 +182,7 @@ func MakeEmptyChart(Ym string) Chart {
 			MakeEmptyHistoricalMaxDataset(),
 			MakeEmptyHistoricalMinDataset(),
 		},
+		IsNew: true,
 	}
 }
 

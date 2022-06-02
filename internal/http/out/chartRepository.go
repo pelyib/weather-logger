@@ -1,6 +1,7 @@
 package out
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,32 +19,40 @@ type InMemmoryRepository struct {
 }
 
 type DatabaseRepository struct {
-	db bbolt.DB
-	l  shared.Logger
+	dbKey DatabaseKey
+	db    bbolt.DB
+	l     shared.Logger
 }
 
-func (repo InMemmoryRepository) Load(searchRequest business.ChartSearchRequest) *business.Chart {
-	if _, ok := repo.charts[searchRequest.Ym]; ok {
-		return repo.charts[searchRequest.Ym]
+type MigrationDatabaseRepository struct {
+	r business.ChartRepository
+	l shared.Logger
+}
+
+type DatabaseKey func(business.ChartSearchRequestI) []byte
+
+func (repo InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
+	if _, ok := repo.charts[csr.GetYm()]; ok {
+		return repo.charts[csr.GetYm()]
 	}
 
-	c := repo.originRepo.Load(searchRequest)
+	c := repo.originRepo.Load(csr)
 
-	repo.charts[searchRequest.Ym] = c
+	repo.charts[csr.GetYm()] = c
 
 	return c
 }
 
-func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *business.Chart {
+func (repo DatabaseRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
 	var c business.Chart = business.Chart{}
 	err := repo.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
 
-		v := b.Get([]byte(searchRequest.Ym))
+		v := b.Get(repo.dbKey(csr))
 
 		if v != nil {
 			err := json.Unmarshal(v, &c)
-			repo.l.Info("Chart found in datebase")
+			repo.l.Info("Chart found in database")
 			if err != nil {
 				repo.l.Error(err.Error())
 				return err
@@ -56,11 +65,21 @@ func (repo DatabaseRepository) Load(searchRequest business.ChartSearchRequest) *
 	})
 
 	if err != nil {
-		repo.l.Info(fmt.Sprintf("Chart not found, creating empty for %s", searchRequest.Ym))
-		c = business.MakeEmptyChart(searchRequest.Ym)
+		repo.l.Info(fmt.Sprintf("Chart not found, creating empty for %s", csr.GetYm()))
+		c = business.MakeEmptyChart(csr.GetYm())
 	}
 
 	return &c
+}
+
+func (r MigrationDatabaseRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
+	c := r.r.Load(csr)
+
+	if c.IsNew && csr.HasLoc() {
+		c = r.r.Load(csr.WithoutLoc())
+	}
+
+	return c
 }
 
 func (r InMemmoryRepository) Save(c business.Chart) {
@@ -77,7 +96,8 @@ func (r DatabaseRepository) Save(c business.Chart) {
 			return err
 		} else {
 			r.l.Info("saving")
-			b.Put([]byte(c.Ym), []byte(cjson))
+			b.Put(r.dbKey(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}), []byte(cjson))
+			//b.Put([]byte(c.Ym), []byte(cjson))
 		}
 
 		return nil
@@ -88,10 +108,27 @@ func (r DatabaseRepository) Save(c business.Chart) {
 	}
 }
 
+func (r MigrationDatabaseRepository) Save(c business.Chart) {
+	r.r.Save(c)
+}
+
 func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository {
 	return InMemmoryRepository{
 		charts: make(map[string]*business.Chart, 0),
 		originRepo: DatabaseRepository{
+			dbKey: func(csr business.ChartSearchRequestI) []byte {
+				var key bytes.Buffer
+				if csr.HasLoc() {
+					key.WriteString(csr.GetLoc().Country().Alpha2Code())
+					key.WriteString(csr.GetLoc().Name())
+				}
+
+				if csr.GetYm() != "" {
+					key.WriteString(csr.GetYm())
+				}
+
+				return key.Bytes()
+			},
 			db: *db,
 			l:  l,
 		},

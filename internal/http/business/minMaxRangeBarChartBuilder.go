@@ -1,5 +1,6 @@
 package business
 
+/*
 import (
 	"fmt"
 	"time"
@@ -26,7 +27,6 @@ func (b minAndMaxRangeBarChartBuilder) Build(mrs []shared.MeasurementResult) {
 		at, _ := time.Parse(time.RFC3339, mr.At)
 
 		chart := b.r.Load(ChartSearchRequest{Ym: at.Format("2006-01")})
-
 	}
 
 	b.l.Info("barChartBuilder: finished")
@@ -42,3 +42,4 @@ func MakeMinMaxRangeBarChartBuilder(
 		l:      l,
 	}
 }
+*/
