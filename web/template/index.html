@@ -7,15 +7,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js" integrity="sha512-TW5s0IT/IppJtu76UbysrBH9Hy/5X41OTAbQuffZFU6lQ1rdcLHzpU5BzVvr/YFykoiMYZVWlr/PX1mDcfM9Qg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <style>
+div.breadcrumb-wrapper {display: flex; height: 40px; overflow: hidden;}
+div.breadcrumb-wrapper:before {content: '/'; align-items: center; display: flex; padding: 12px 5px 0px 10px; }
+ul {padding: 0px; display: block;}
+li {list-style: none;}
+    </style>
   </head>
   <body>
-    <div style="width:100%; position:relative; white-space: nowrap; overflow: hidden;">
-      <div>
-        <p><a href="/">{{.Hello}} {{.World}}!</a> \ <a href="/">DE - Trier +</a> \ <a href="/">2022 +</a> \ <a href="/">February +</a></p>
+    <div style="width:100%; position:relative; white-space: nowrap; overflow: hidden; display: flex; text-align: center; ">
+      <div class="breadcrumb-wrapper">
+        <ul>
+          <li><a href="/">{{.Title}}!</a></li>
+        </ul>
       </div>
-      <div style="top: 0; width:100px; right:0; bottom: 0; position:absolute;">
-        <span></span>
-      </div>
+      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-full-list="{{.}}">
+        <ul>
+          {{range .}}<li><a href="{{.Link}}">{{.Title}}</a></li>{{end}}
+        </ul>
+      </div>{{end}}
     </div>
    <div width="100%" height="500px">
       <canvas id="myChart" height="500px"></canvas>
