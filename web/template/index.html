@@ -9,20 +9,50 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
 div.breadcrumb-wrapper {display: flex; height: 40px; overflow: hidden;}
-div.breadcrumb-wrapper:before {content: '/'; align-items: center; display: flex; padding: 12px 5px 0px 10px; }
-ul {padding: 0px; display: block;}
-li {list-style: none;}
+div.breadcrumb-wrapper:before {content: '/'; display: flex; padding: 18px 5px 0px 10px; }
+ul {padding: 0px; display: block; height: 20px}
+li {list-style: none; height: 20px}
     </style>
+    <script>
+      function throttle(wait) {
+        var time = Date.now();
+        return function() {
+          if ((time + wait - Date.now()) < 0) {
+            time = Date.now()
+            return true
+          }
+
+          return false
+        }
+      }
+      function scrolling(event, throttle) {
+        event.preventDefault()
+        if (throttle()) {
+          element = event.target
+          element.dataset.index++
+          scrollTo = element.dataset.index*19
+          console.log('scrollTo ' + scrollTo)
+          element.scroll(0, scrollTo)
+          console.log(element)
+        }
+      }
+      function subScrolling(element) {
+          th = throttle(1000)
+          element.addEventListener('scroll', (event) => scrolling(event, th))
+      }
+      function init() {
+        initNavScrolling();
+      }
+
+      function initNavScrolling() {
+        document.querySelectorAll('div.breadcrumb-wrapper ul').forEach((e) => subScrolling(e));
+      }
+    </script>
   </head>
-  <body>
-    <div style="width:100%; position:relative; white-space: nowrap; overflow: hidden; display: flex; text-align: center; ">
-      <div class="breadcrumb-wrapper">
-        <ul>
-          <li><a href="/">{{.Title}}!</a></li>
-        </ul>
-      </div>
-      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-full-list="{{.}}">
-        <ul>
+  <body onload="init();">
+    <div style="width:100%; position:relative; white-space: nowrap; display: flex; ">
+      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-full-list="{{.}}" >
+        <ul data-index="0">
           {{range .}}<li><a href="{{.Link}}">{{.Title}}</a></li>{{end}}
         </ul>
       </div>{{end}}

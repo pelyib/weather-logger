@@ -90,12 +90,17 @@ func (h pageHandler) renderTmpl(
 	}
 
 	hw := business.Page{
-		Title:       "he!!o we4th3r",
-		Breadcrumbs: [][]business.Breadcrumb{cities, years, months},
-		Chart:       chart,
+		Title: "he!!o we4th3r",
+		Breadcrumbs: [][]business.Breadcrumb{
+			[]business.Breadcrumb{
+				business.Breadcrumb{"he!!o we4th3r", "", true},
+			},
+			cities,
+			years,
+			months,
+		},
+		Chart: chart,
 	}
-
-	log.Println(hw.Breadcrumbs)
 
 	err = tmpl.Execute(w, hw)
 	if err != nil {
