@@ -8,13 +8,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
-div.breadcrumb-wrapper {height: 30px; overflow-y: scroll;}
-div.breadcrumb-wrapper:before {content: '/'; position: relative; top: 18px; }
-div.breadcrumb-wrapper div {padding-left: 10px; padding-right: 10px; }
+div.breadcrumb-wrapper {height: 20px; overflow-y: scroll;}
+div.breadcrumb-wrapper div {height: 20px; padding-left: 10px; padding-right: 10px; }
+div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; }
     </style>
     <script>
-      const NAV_SCROLL_IN_PIXEL = 19
-      const NAV_THROTTLING_GRACE_PERIOD = 1000
+      const NAV_SCROLL_IN_PIXEL = 20
+      const NAV_THROTTLING_GRACE_PERIOD = 500
       function throttle(wait) {
         var time = Date.now();
         return function() {
@@ -36,23 +36,23 @@ div.breadcrumb-wrapper div {padding-left: 10px; padding-right: 10px; }
 
         el.scroll(0, scrollTo)
       }
-      function subScrolling(element) {
-        th = throttle(NAV_THROTTLING_GRACE_PERIOD)
-        element.addEventListener('scroll', (event) => scrolling(event, th))
+      function subScrolling(el) {
+        let th = throttle(NAV_THROTTLING_GRACE_PERIOD)
+        el.addEventListener('scroll', (event) => scrolling(event, th))
       }
       function init() {
         initNavScrolling();
       }
 
       function initNavScrolling() {
-        document.querySelectorAll('div.breadcrumb-wrapper').forEach((e) => subScrolling(e));
+        document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => subScrolling(el));
       }
     </script>
   </head>
   <body onload="init();">
     <div style="width:100%; position:relative; white-space: nowrap; display: flex; flex: 1;  ">
-      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-scroll-index="0" data-full-list="{{.}}" >
-          {{range .}}<div><a href="{{.Link}}">{{.Title}}</a></div>{{end}}
+      {{range .Breadcrumbs}}<span>/</span><div class="breadcrumb-wrapper" data-scroll-index="0" data-full-list="{{.}}" >
+          {{range .}}<p><a href="{{.Link}}">{{.Title}}</a></p>{{end}}
       </div>{{end}}
     </div>
    <div width="100%" height="500px">
