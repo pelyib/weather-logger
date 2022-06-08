@@ -8,12 +8,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
-div.breadcrumb-wrapper {display: flex; height: 40px; overflow: hidden;}
-div.breadcrumb-wrapper:before {content: '/'; display: flex; padding: 18px 5px 0px 10px; }
-ul {padding: 0px; display: block; height: 20px}
-li {list-style: none; height: 20px}
+div.breadcrumb-wrapper {height: 30px; overflow-y: scroll;}
+div.breadcrumb-wrapper:before {content: '/'; position: relative; top: 18px; }
+div.breadcrumb-wrapper div {padding-left: 10px; padding-right: 10px; }
     </style>
     <script>
+      const NAV_SCROLL_IN_PIXEL = 19
+      const NAV_THROTTLING_GRACE_PERIOD = 1000
       function throttle(wait) {
         var time = Date.now();
         return function() {
@@ -26,35 +27,32 @@ li {list-style: none; height: 20px}
         }
       }
       function scrolling(event, throttle) {
-        event.preventDefault()
+        let el = event.target
+        let scrollTo = el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL
         if (throttle()) {
-          element = event.target
-          element.dataset.index++
-          scrollTo = element.dataset.index*19
-          console.log('scrollTo ' + scrollTo)
-          element.scroll(0, scrollTo)
-          console.log(element)
+          el.dataset.scrollIndex++
+          scrollTo = el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL
         }
+
+        el.scroll(0, scrollTo)
       }
       function subScrolling(element) {
-          th = throttle(1000)
-          element.addEventListener('scroll', (event) => scrolling(event, th))
+        th = throttle(NAV_THROTTLING_GRACE_PERIOD)
+        element.addEventListener('scroll', (event) => scrolling(event, th))
       }
       function init() {
         initNavScrolling();
       }
 
       function initNavScrolling() {
-        document.querySelectorAll('div.breadcrumb-wrapper ul').forEach((e) => subScrolling(e));
+        document.querySelectorAll('div.breadcrumb-wrapper').forEach((e) => subScrolling(e));
       }
     </script>
   </head>
   <body onload="init();">
-    <div style="width:100%; position:relative; white-space: nowrap; display: flex; ">
-      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-full-list="{{.}}" >
-        <ul data-index="0">
-          {{range .}}<li><a href="{{.Link}}">{{.Title}}</a></li>{{end}}
-        </ul>
+    <div style="width:100%; position:relative; white-space: nowrap; display: flex; flex: 1;  ">
+      {{range .Breadcrumbs}}<div class="breadcrumb-wrapper" data-scroll-index="0" data-full-list="{{.}}" >
+          {{range .}}<div><a href="{{.Link}}">{{.Title}}</a></div>{{end}}
       </div>{{end}}
     </div>
    <div width="100%" height="500px">
