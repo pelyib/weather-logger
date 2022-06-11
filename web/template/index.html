@@ -8,9 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
-div.breadcrumb-wrapper {height: 20px; overflow-y: scroll;}
-div.breadcrumb-wrapper div {height: 20px; padding-left: 10px; padding-right: 10px; }
-div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; }
+      div.breadcrumb-wrapper {height: 20px; overflow-y: scroll;}
+      div.breadcrumb-wrapper div {height: 20px; padding-left: 10px; padding-right: 10px; }
+      div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; padding-left: 10px; padding-right: 10px; }
     </style>
     <script>
       const NAV_SCROLL_IN_PIXEL = 20
@@ -26,33 +26,46 @@ div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; }
           return false
         }
       }
-      function scrolling(event, throttle) {
-        let el = event.target
-        let scrollTo = el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL
+      function scrolling(el, throttle) {
+        let scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
+        let up = el.scrollTop > scrollTo
         if (throttle()) {
-          el.dataset.scrollIndex++
-          scrollTo = el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL
+          if (
+            (up && (parseInt(el.dataset.scrollIndex) < parseInt(el.dataset.size)))
+            || (up == false && parseInt(el.dataset.scrollIndex) > 0)
+          ) {
+            up 
+              ? el.dataset.scrollIndex++
+              : el.dataset.scrollIndex--
+            scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
+          }
         }
 
         el.scroll(0, scrollTo)
       }
       function subScrolling(el) {
         let th = throttle(NAV_THROTTLING_GRACE_PERIOD)
-        el.addEventListener('scroll', (event) => scrolling(event, th))
+        el.addEventListener('scroll', (event) => { scrolling(event.target, th) })
       }
       function init() {
         initNavScrolling();
+        initNavScrollPosition()
       }
 
       function initNavScrolling() {
         document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => subScrolling(el));
       }
+      function initNavScrollPosition() {
+        document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => {el.scroll(0, el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL)})
+      }
     </script>
   </head>
   <body onload="init();">
     <div style="width:100%; position:relative; white-space: nowrap; display: flex; flex: 1;  ">
-      {{range .Breadcrumbs}}<span>/</span><div class="breadcrumb-wrapper" data-scroll-index="0" data-full-list="{{.}}" >
-          {{range .}}<p><a href="{{.Link}}">{{.Title}}</a></p>{{end}}
+      {{range .Breadcrumbs}}<span>/</span><div class="breadcrumb-wrapper" data-scroll-index="{{ range $index, $element
+                                                                         := . }}{{ if eq $element.IsSelected true
+                                                                         }}{{$index}} {{end}} {{ end }}" data-size="{{len .}}" data-full-list="{{.}}" >
+        {{range $index, $element := .}}<p data-index="{{$index}}"><a href="{{$element.Link}}">{{$element.Title}}</a></p>{{end}}
       </div>{{end}}
     </div>
    <div width="100%" height="500px">
