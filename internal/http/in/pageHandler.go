@@ -66,40 +66,10 @@ func (h pageHandler) renderTmpl(
 		log.Fatalf("template parsing failed: %s", err)
 	}
 
-	cities := []business.Breadcrumb{
-		business.MakeBreadcrumb("DE - Trier", "c&c", "de/trier", true),
-		business.MakeBreadcrumb("HU - Budapest", "c&c", "hu/budapest", false),
-	}
-	years := []business.Breadcrumb{
-		business.MakeBreadcrumb("2021", "year", "2021", false),
-		business.MakeBreadcrumb("2022", "year", "2022", true),
-	}
-	months := []business.Breadcrumb{
-		business.MakeBreadcrumb("January", "month", "01", false),
-		business.MakeBreadcrumb("February", "month", "02", false),
-		business.MakeBreadcrumb("March", "month", "03", false),
-		business.MakeBreadcrumb("April", "month", "04", false),
-		business.MakeBreadcrumb("May", "month", "05", false),
-		business.MakeBreadcrumb("June", "month", "06", true),
-		business.MakeBreadcrumb("July", "month", "07", false),
-		business.MakeBreadcrumb("August", "month", "08", false),
-		business.MakeBreadcrumb("September", "month", "09", false),
-		business.MakeBreadcrumb("October", "month", "10", false),
-		business.MakeBreadcrumb("November", "month", "11", false),
-		business.MakeBreadcrumb("December", "month", "12", false),
-	}
-
 	hw := business.Page{
-		Title: "he!!o we4th3r",
-		Breadcrumbs: [][]business.Breadcrumb{
-			[]business.Breadcrumb{
-				business.MakeBreadcrumb("he!!o we4th3r", "noop", "noop", true),
-			},
-			cities,
-			years,
-			months,
-		},
-		Chart: chart,
+		Title:       "he!!o we4th3r",
+		Breadcrumbs: business.MakeBreadcrumbs(chart),
+		Chart:       chart,
 	}
 
 	err = tmpl.Execute(w, hw)
