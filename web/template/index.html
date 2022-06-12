@@ -15,6 +15,8 @@
     <script>
       const NAV_SCROLL_IN_PIXEL = 20
       const NAV_THROTTLING_GRACE_PERIOD = 500
+      const URI_PATTERN = '/c&c/year/month'
+      var uri = URI_PATTERN
       function throttle(wait) {
         var time = Date.now();
         return function() {
@@ -42,31 +44,45 @@
         }
 
         el.scroll(0, scrollTo)
+        updateUri()
       }
       function subScrolling(el) {
         let th = throttle(NAV_THROTTLING_GRACE_PERIOD)
         el.addEventListener('scroll', (event) => { scrolling(event.target, th) })
       }
-      function init() {
-        initNavScrolling();
-        initNavScrollPosition()
-      }
-
       function initNavScrolling() {
         document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => subScrolling(el));
       }
       function initNavScrollPosition() {
         document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => {el.scroll(0, el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL)})
       }
+      function updateUri() {
+        let originalUri = uri
+        uri = URI_PATTERN
+        initUri()
+        if (originalUri !== uri) {
+          el = document.querySelector('#show-me')
+          el.querySelector('a').href = uri
+          el.style.display = 'block'
+        }
+      }
+      function initUri() {
+        let wrapper = document.querySelectorAll('div.breadcrumb-wrapper')
+        wrapper.forEach((el) => {el.querySelectorAll('[data-index="' + el.dataset.scrollIndex + '"]').forEach((el) => {uri = uri.replace(el.dataset.uriPart, el.dataset.uriValue)})})
+      }
+      function init() {
+        initNavScrolling();
+        initNavScrollPosition()
+        initUri()
+      }
     </script>
   </head>
   <body onload="init();">
     <div style="width:100%; position:relative; white-space: nowrap; display: flex; flex: 1;  ">
-      {{range .Breadcrumbs}}<span>/</span><div class="breadcrumb-wrapper" data-scroll-index="{{ range $index, $element
-                                                                         := . }}{{ if eq $element.IsSelected true
-                                                                         }}{{$index}} {{end}} {{ end }}" data-size="{{len .}}" data-full-list="{{.}}" >
-        {{range $index, $element := .}}<p data-index="{{$index}}"><a href="{{$element.Link}}">{{$element.Title}}</a></p>{{end}}
+      {{range .Breadcrumbs}}<span>/</span><div class="breadcrumb-wrapper" data-scroll-index="{{ range $index, $element := . }}{{ if eq $element.IsSelected true}}{{$index}}{{end}}{{ end }}" data-size="{{len .}}" data-full-list="{{.}}" >
+        {{range $index, $element := .}}<p data-index="{{$index}}" data-uri-part="{{ $element.UriPart }}" data-uri-value="{{ $element.UriValue }}">{{$element.Title}}</p>{{end}}
       </div>{{end}}
+      <span id="show-me" style="display:none;"><a href="">&#62;&#62; Show me</a></span>
     </div>
    <div width="100%" height="500px">
       <canvas id="myChart" height="500px"></canvas>

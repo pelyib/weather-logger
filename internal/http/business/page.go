@@ -8,6 +8,11 @@ type Page struct {
 
 type Breadcrumb struct {
 	Title      string
-	Link       string
+	UriPart    string
+	UriValue   string
 	IsSelected bool
+}
+
+func MakeBreadcrumb(t string, up string, uv string, isSelected bool) Breadcrumb {
+	return Breadcrumb{Title: t, UriPart: up, UriValue: uv, IsSelected: isSelected}
 }
