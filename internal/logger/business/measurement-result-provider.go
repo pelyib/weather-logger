@@ -11,7 +11,7 @@ type MeasurementResultProvider interface {
 }
 
 func (pool measurementResultProviderPool) GetMeasurement(searchRequest SearchRequest) []shared.MeasurementResult {
-	mrs := []shared.MeasurementResult{}
+	mrs := shared.MakeEmptyResults()
 
 	for _, extPrd := range pool.extPrds {
 		mrs = append(mrs, extPrd.GetMeasurement(searchRequest)...)

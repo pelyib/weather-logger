@@ -25,7 +25,7 @@ type awHistorical struct {
 }
 
 func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
-	mrs := []shared.MeasurementResult{}
+	mrs := shared.MakeEmptyResults()
 
 	client := http.Client{}
 	q := url.Values{}
@@ -122,7 +122,7 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 }
 
 func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
-	mrs := []shared.MeasurementResult{}
+	mrs := shared.MakeEmptyResults()
 
 	client := http.Client{}
 	q := url.Values{}

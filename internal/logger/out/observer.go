@@ -21,7 +21,7 @@ type httpObs struct {
 }
 
 func (cli cliObs) Notify(mrs []shared.MeasurementResult) {
-	cli.l.Info(fmt.Sprintf("%d measurements results fethced", len(mrs)))
+	cli.l.Info(fmt.Sprintf("%d measurements results fetched", len(mrs)))
 
 	if cli.verbose {
 		json, _ := json.Marshal(mrs)

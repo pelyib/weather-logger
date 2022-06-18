@@ -13,5 +13,9 @@ type MeasurementResult struct {
 	// TODO: add location as well [botond.pelyi]
 }
 
+func MakeEmptyResults() []MeasurementResult {
+	return []MeasurementResult{}
+}
+
 type SearchRequest struct {
 }

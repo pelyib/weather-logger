@@ -14,7 +14,7 @@ type executor struct {
 }
 
 func (e executor) Execute(msg []byte) {
-	mrs := []shared.MeasurementResult{}
+	mrs := shared.MakeEmptyResults()
 	err := json.Unmarshal(msg, &mrs)
 
 	if err == nil {
