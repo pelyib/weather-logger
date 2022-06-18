@@ -8,73 +8,73 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <style>
-      div.breadcrumb-wrapper {height: 20px; overflow-y: scroll;}
-      div.breadcrumb-wrapper div {height: 20px; padding-left: 10px; padding-right: 10px; }
-      div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; padding-left: 10px; padding-right: 10px; }
+div.breadcrumb-wrapper {height: 20px; overflow-y: scroll;}
+div.breadcrumb-wrapper div {height: 20px; padding-left: 10px; padding-right: 10px; }
+div.breadcrumb-wrapper p {height:20px; margin-top: 0px; margin-bottom: 0px; padding-left: 10px; padding-right: 10px; }
     </style>
     <script>
-      const NAV_SCROLL_IN_PIXEL = 20
-      const NAV_THROTTLING_GRACE_PERIOD = 500
-      const URI_PATTERN = '/c&c/year/month'
-      var uri = URI_PATTERN
-      function throttle(wait) {
-        var time = Date.now();
-        return function() {
-          if ((time + wait - Date.now()) < 0) {
-            time = Date.now()
-            return true
-          }
+const NAV_SCROLL_IN_PIXEL = 20
+const NAV_THROTTLING_GRACE_PERIOD = 500
+const URI_PATTERN = '/c&c/year/month'
+var uri = URI_PATTERN
+function throttle(wait) {
+  var time = Date.now();
+  return function() {
+    if ((time + wait - Date.now()) < 0) {
+      time = Date.now()
+      return true
+    }
 
-          return false
-        }
-      }
-      function scrolling(el, throttle) {
-        let scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
-        let up = el.scrollTop > scrollTo
-        if (throttle()) {
-          if (
-            (up && (parseInt(el.dataset.scrollIndex) < parseInt(el.dataset.size)))
-            || (up == false && parseInt(el.dataset.scrollIndex) > 0)
-          ) {
-            up 
-              ? el.dataset.scrollIndex++
-              : el.dataset.scrollIndex--
-            scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
-          }
-        }
+    return false
+  }
+}
+function scrolling(el, throttle) {
+  let scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
+  let up = el.scrollTop > scrollTo
+  if (throttle()) {
+    if (
+      (up && (parseInt(el.dataset.scrollIndex) < parseInt(el.dataset.size)))
+      || (up == false && parseInt(el.dataset.scrollIndex) > 0)
+    ) {
+      up 
+        ? el.dataset.scrollIndex++
+        : el.dataset.scrollIndex--
+      scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
+    }
+  }
 
-        el.scroll(0, scrollTo)
-        updateUri()
-      }
-      function subScrolling(el) {
-        let th = throttle(NAV_THROTTLING_GRACE_PERIOD)
-        el.addEventListener('scroll', (event) => { scrolling(event.target, th) })
-      }
-      function initNavScrolling() {
-        document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => subScrolling(el));
-      }
-      function initNavScrollPosition() {
-        document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => {el.scroll(0, el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL)})
-      }
-      function updateUri() {
-        let originalUri = uri
-        uri = URI_PATTERN
-        initUri()
-        if (originalUri !== uri) {
-          el = document.querySelector('#show-me')
-          el.querySelector('a').href = uri
-          el.style.display = 'block'
-        }
-      }
-      function initUri() {
-        let wrapper = document.querySelectorAll('div.breadcrumb-wrapper')
-        wrapper.forEach((el) => {el.querySelectorAll('[data-index="' + el.dataset.scrollIndex + '"]').forEach((el) => {uri = uri.replace(el.dataset.uriPart, el.dataset.uriValue)})})
-      }
-      function init() {
-        initNavScrolling();
-        initNavScrollPosition()
-        initUri()
-      }
+  el.scroll(0, scrollTo)
+  updateUri()
+}
+function subScrolling(el) {
+  let th = throttle(NAV_THROTTLING_GRACE_PERIOD)
+  el.addEventListener('scroll', (event) => { scrolling(event.target, th) })
+}
+function initNavScrolling() {
+  document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => subScrolling(el));
+}
+function initNavScrollPosition() {
+  document.querySelectorAll('div.breadcrumb-wrapper').forEach((el) => {el.scroll(0, el.dataset.scrollIndex * NAV_SCROLL_IN_PIXEL)})
+}
+function updateUri() {
+  let originalUri = uri
+  uri = URI_PATTERN
+  initUri()
+  if (originalUri !== uri) {
+    el = document.querySelector('#show-me')
+    el.querySelector('a').href = uri
+    el.style.display = 'block'
+  }
+}
+function initUri() {
+  let wrapper = document.querySelectorAll('div.breadcrumb-wrapper')
+  wrapper.forEach((el) => {el.querySelectorAll('[data-index="' + el.dataset.scrollIndex + '"]').forEach((el) => {uri = uri.replace(el.dataset.uriPart, el.dataset.uriValue)})})
+}
+function init() {
+  initNavScrolling();
+  initNavScrollPosition()
+  initUri()
+}
     </script>
   </head>
   <body onload="init();">
@@ -84,106 +84,106 @@
       </div>{{end}}
       <span id="show-me" style="display:none;"><a href="">&#62;&#62; Show me</a></span>
     </div>
-   <div width="100%" height="500px">
+    <div width="100%" height="500px">
       <canvas id="myChart" height="500px"></canvas>
     </div>
     <script>
-      const today = (new Date()).setHours(0,0,0,0);
-      const ctx = document.getElementById('myChart');
-      const myChart = new Chart(ctx, {
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            xAxes: {
-              display: true,
-              type: 'time',
-              time: {
-                unit: 'day',
-                displayFormats: {
-                  'day': 'MMM DD'
-                }
-              },
-              ticks: {
-                major: {
-                  enabled: false
-                }
-              },
-              title: {
-                display: true,
-                text: "Date"
-              },
-              grid: {
-                lineWidth: function(context) {
-                  if (context.tick !== undefined && context.tick.value == today) {
-                    return 3;
-                  }
-
-                  return 1;
-                },
-                color: function(context) {
-                  if (context.tick !== undefined && context.tick.value == today) {
-                    return "rgba(255,0,0,0.2)";
-                  }
-
-                  return Chart.defaults.borderColor;
-                }
-              },
-              stacked: true
-            },
-            yAxes: {
-              title: {
-                display: true,
-                text: "Temperature"
-              },
-              grid: {
-                lineWidth: function(context) {
-                  if (context.tick.value == 0) {
-                    return 3
-                  }
-
-                  return 1
-                },
-                color: function(context) {
-                  if (context.tick.value == 0) {
-                    return "rgba(0,0,255,0.2)";
-                  }
-
-                  return Chart.defaults.borderColor;
-                }
-              }
-            }
+const today = (new Date()).setHours(0,0,0,0);
+const ctx = document.getElementById('myChart');
+const myChart = new Chart(ctx, {
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      xAxes: {
+        display: true,
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            'day': 'MMM DD'
           }
         },
-        data: {
-          labels: {{.Chart.Labels}},
-          datasets: [
-            {{range .Chart.Datasets}}{
-              {{if eq .Label "Forecast MIN"}} 
-                borderColor: "rgba(209,229,240,1)",
-                backgroundColor: "rgba(209,229,240,1)",
-              {{else if eq .Label "Forecast MAX"}}
-                borderColor: "rgba(244,165,130,0.3)",
-                backgroundColor: "rgba(244,165,130,0.6)",
-              {{else if eq .Label "Historical MIN"}}
-                borderColor: "rgba(33,102,172,0.9)",
-                backgroundColor: "rgba(33,102,172,0.9)",
-              {{else if eq .Label "Historical MAX"}}
-                borderColor: "rgba(202,0,32,0.6)",
-                backgroundColor: "rgba(202,0,32,0.6)",
-              {{else}}
-                borderColor: "rgba(118,42,131,1)",
-                backgroundColor: "rgba(175,141,195,0.3)",
-              {{end}}
-              type: "{{.Type}}",
-              label: "{{.Label}}",
-              data: [
-                {{range .Data}}{x:{{.X}}, y:{{.Y}}, r:{{.R}}},
-                {{end}}]
-            },{{end}}
-          ]
+        ticks: {
+          major: {
+            enabled: false
+          }
+        },
+        title: {
+          display: true,
+          text: "Date"
+        },
+        grid: {
+          lineWidth: function(context) {
+            if (context.tick !== undefined && context.tick.value == today) {
+              return 3;
+            }
+
+            return 1;
+          },
+          color: function(context) {
+            if (context.tick !== undefined && context.tick.value == today) {
+              return "rgba(255,0,0,0.2)";
+            }
+
+            return Chart.defaults.borderColor;
+          }
+        },
+        stacked: true
+      },
+      yAxes: {
+        title: {
+          display: true,
+          text: "Temperature"
+        },
+        grid: {
+          lineWidth: function(context) {
+            if (context.tick.value == 0) {
+              return 3
+            }
+
+            return 1
+          },
+          color: function(context) {
+            if (context.tick.value == 0) {
+              return "rgba(0,0,255,0.2)";
+            }
+
+            return Chart.defaults.borderColor;
+          }
         }
-      });
+      }
+    }
+  },
+  data: {
+    labels: {{.Chart.Labels}},
+    datasets: [
+      {{range .Chart.Datasets}}{
+        {{if eq .Label "Forecast MIN"}} 
+        borderColor: "rgba(209,229,240,1)",
+          backgroundColor: "rgba(209,229,240,1)",
+          {{else if eq .Label "Forecast MAX"}}
+        borderColor: "rgba(244,165,130,0.3)",
+          backgroundColor: "rgba(244,165,130,0.6)",
+          {{else if eq .Label "Historical MIN"}}
+        borderColor: "rgba(33,102,172,0.9)",
+          backgroundColor: "rgba(33,102,172,0.9)",
+          {{else if eq .Label "Historical MAX"}}
+        borderColor: "rgba(202,0,32,0.6)",
+          backgroundColor: "rgba(202,0,32,0.6)",
+          {{else}}
+        borderColor: "rgba(118,42,131,1)",
+          backgroundColor: "rgba(175,141,195,0.3)",
+          {{end}}
+        type: "{{.Type}}",
+          label: "{{.Label}}",
+          data: [
+            {{range .Data}}{x:{{.X}}, y:{{.Y}}, r:{{.R}}},
+            {{end}}]
+      },{{end}}
+    ]
+  }
+});
     </script>
   </body>
 </html>
