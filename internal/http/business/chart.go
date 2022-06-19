@@ -22,7 +22,7 @@ const DatasetLabelHistoricalMax string = "Historical MAX"
 
 // TODO implement Chart interface, use it everywhere [botond.pelyi]
 type ChartI interface {
-	Loc() shared.GeoLocation
+	Loc() shared.Location
 }
 
 type ChartSearchRequestI interface {
@@ -62,7 +62,7 @@ func (csr ChartSearchRequest) GetYm() string {
 }
 
 func (csr ChartSearchRequest) HasLoc() bool {
-	return csr.Loc != nil
+	return csr.Loc != shared.Location{}
 }
 
 func (csr ChartSearchRequest) GetLoc() shared.Location {
@@ -72,7 +72,7 @@ func (csr ChartSearchRequest) GetLoc() shared.Location {
 // TODO csr should be immutable [botond.pelyi]
 func (csr ChartSearchRequest) WithoutLoc() ChartSearchRequestI {
 	copy := csr
-	copy.Loc = nil
+	copy.Loc = shared.Location{}
 
 	return copy
 }
@@ -165,15 +165,16 @@ func (c Chart) selectDataset(t string, l string) (*Dataset, error) {
 	return &Dataset{}, errors.New(fmt.Sprintf("Dataset (type: %s | label: %s) is missing", t, l))
 }
 
-func MakeEmptyChart(Ym string) Chart {
-	ymt, _ := time.Parse("2006-01", Ym)
+func MakeEmptyChart(csr ChartSearchRequestI) Chart {
+	ymt, _ := time.Parse("2006-01", csr.GetYm())
 	labels := make([]int64, time.Date(ymt.Year(), ymt.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day())
 	for i := range labels {
 		labels[i] = time.Date(ymt.Year(), ymt.Month(), i+1, 0, 0, 0, 0, time.UTC).UnixMilli()
 	}
 
 	return Chart{
-		Ym:     Ym,
+		Ym:     csr.GetYm(),
+		Loc:    csr.GetLoc(),
 		Labels: labels,
 		Datasets: []*Dataset{
 			MakeEmptyForecastMinLineDataset(),

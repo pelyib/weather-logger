@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -17,8 +18,6 @@ func main() {
 	execute := flag.String("execute", "help", "Command to be executed")
 	flag.Parse()
 
-	l.Info(*execute)
-
 	switch *execute {
 	case "forecasts", "historical":
 		cnf, err := shared.CreateLoggerConf(shared.MakeCliLogger(shared.App_Commander, "Config"))
@@ -27,14 +26,14 @@ func main() {
 			os.Exit(2)
 		}
 
-		executeFetchCommands(*execute, cnf.Mq, shared.MakeCliLogger(shared.App_Commander, "FetchCommands"))
+		executeFetchCommands(*execute, cnf, shared.MakeCliLogger(shared.App_Commander, "FetchCommands"))
 	case "help":
-		l.Info("Unknow command")
+		l.Info("Unknown command (given:" + *execute + ")\n\nPossible flags\n  - forecasts  : will trigger the logger to fetch forecasts from the providers\n  - historical : will trigger the logger to fetch historical data from providers")
 	}
 }
 
-func executeFetchCommands(cmd string, cnf shared.Mq, l shared.Logger) {
-	c := mq.MakeChannel(cnf, shared.MakeCliLogger(shared.App_Commander, "MQ"))
+func executeFetchCommands(cmd string, cnf *shared.LoggerCnf, l shared.Logger) {
+	c := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Commander, "MQ"))
 
 	msg := amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
@@ -42,12 +41,22 @@ func executeFetchCommands(cmd string, cnf shared.Mq, l shared.Logger) {
 		ContentType:  "application/json",
 	}
 	routingKey := fmt.Sprintf("fetch:%s", cmd)
-	err := c.Publish("logger", routingKey, false, false, msg)
 
-	if err != nil {
-		l.Warning("Could not send message")
-	} else {
-		l.Info(fmt.Sprintf("Message (%s) published", routingKey))
+	for _, loc := range cnf.Locations {
+		msgJson, err := json.Marshal(mq.MsgBody{Loc: loc})
+
+		if err == nil {
+			msg.Body = msgJson
+			err = c.Publish("logger", routingKey, false, false, msg)
+
+			if err == nil {
+				l.Info(fmt.Sprintf("Message published | cmd: %s | loc: %s-%s", routingKey, loc.Country.Alpha2Code, loc.Name))
+			} else {
+				l.Warning("Could not send message")
+			}
+		} else {
+			l.Warning("Could not create message body")
+		}
 	}
 
 	c.Close()

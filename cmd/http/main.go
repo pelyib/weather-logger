@@ -67,7 +67,7 @@ func serve(cnf *shared.HttpCnf, cr *business.ChartRepository) {
 	h := &regexpHandler{}
 
 	hh := in.MakeHistoryHandler(cnf, cr)
-	hp, _ := regexp.Compile("/de/trier/[0-9]{4}/[0-9]{2}")
+	hp, _ := regexp.Compile("/[a-z]{2}/[a-z]{1,}/[0-9]{4}/[0-9]{2}")
 	h.HandleFunc(hp, func(rw http.ResponseWriter, r *http.Request) {
 		hh.Handle(rw, r)
 	})

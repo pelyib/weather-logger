@@ -24,7 +24,7 @@ type awHistorical struct {
 	l   shared.Logger
 }
 
-func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
+func (awh awHistorical) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
 	mrs := shared.MakeEmptyResults()
 
 	client := http.Client{}
@@ -35,7 +35,7 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 		"GET",
 		fmt.Sprintf(
 			"http://dataservice.accuweather.com/currentconditions/v1/%s/historical/24",
-			awh.cnf.Cities[0].Locationkey,
+			searchRequest.Loc.Providers.AccuWeather.Locationkey,
 		),
 		nil,
 	)
@@ -115,13 +115,14 @@ func (awh awHistorical) GetMeasurement(searchRequest business.SearchRequest) []s
 			Max:        max,
 			At:         today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
 			RecordedAt: time.Now().Format(time.RFC3339),
+			Loc:        searchRequest.Loc,
 		},
 	)
 
 	return mrs
 }
 
-func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []shared.MeasurementResult {
+func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
 	mrs := shared.MakeEmptyResults()
 
 	client := http.Client{}
@@ -133,7 +134,7 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 		"GET",
 		fmt.Sprintf(
 			"https://dataservice.accuweather.com/forecasts/v1/daily/5day/%s",
-			awf.cnf.Cities[0].Locationkey,
+			searchRequest.Loc.Providers.AccuWeather.Locationkey,
 		),
 		nil,
 	)
@@ -205,6 +206,7 @@ func (awf awForecast) GetMeasurement(searchRequest business.SearchRequest) []sha
 				Max:        df.Temperature.Maximum.Value,
 				At:         at.Format(time.RFC3339),
 				RecordedAt: time.Now().Format(time.RFC3339),
+				Loc:        searchRequest.Loc,
 			},
 		)
 	}

@@ -7,10 +7,10 @@ type measurementResultProviderPool struct {
 }
 
 type MeasurementResultProvider interface {
-	GetMeasurement(searchRequest SearchRequest) []shared.MeasurementResult
+	GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult
 }
 
-func (pool measurementResultProviderPool) GetMeasurement(searchRequest SearchRequest) []shared.MeasurementResult {
+func (pool measurementResultProviderPool) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
 	mrs := shared.MakeEmptyResults()
 
 	for _, extPrd := range pool.extPrds {

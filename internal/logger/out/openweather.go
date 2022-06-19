@@ -77,14 +77,14 @@ type owHistorical struct {
 	l   shared.Logger
 }
 
-func (owh owHistorical) GetMeasurement(sr business.SearchRequest) []shared.MeasurementResult {
+func (owh owHistorical) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
 	mrs := shared.MakeEmptyResults()
 	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 	yesterday := today.Add(time.Hour * 24 * -1)
 	client := http.Client{}
 	q := url.Values{}
-	q.Add("lat", fmt.Sprintf("%f", owh.cnf.Cities[0].Langitude))
-	q.Add("lon", fmt.Sprintf("%f", owh.cnf.Cities[0].Longitude))
+	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Langitude))
+	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Langitude))
 	q.Add("appid", owh.cnf.ForecastProviders.OpenWeather.AppId)
 	q.Add("units", "metric")
 	q.Add("dt", strconv.FormatInt(yesterday.Unix(), 10))
@@ -145,17 +145,18 @@ func (owh owHistorical) GetMeasurement(sr business.SearchRequest) []shared.Measu
 			Max:        max,
 			At:         yesterday.Format(time.RFC3339),
 			RecordedAt: time.Now().Format(time.RFC3339),
+			Loc:        sr.Loc,
 		},
 	)
 
 	return mrs
 }
 
-func (owf owForecast) GetMeasurement(sr business.SearchRequest) []shared.MeasurementResult {
+func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
 	client := http.Client{}
 	q := url.Values{}
-	q.Add("lat", fmt.Sprintf("%f", owf.cnf.Cities[0].Langitude))
-	q.Add("lon", fmt.Sprintf("%f", owf.cnf.Cities[0].Longitude))
+	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Langitude))
+	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
 	q.Add("exclude", "current,minutely,hourly,alerts")
 	q.Add("appid", owf.cnf.ForecastProviders.OpenWeather.AppId)
 	q.Add("units", "metric")
@@ -163,7 +164,7 @@ func (owf owForecast) GetMeasurement(sr business.SearchRequest) []shared.Measure
 	req, err := http.NewRequest("GET", "https://api.openweathermap.org/data/2.5/onecall", nil)
 
 	if err != nil {
-		fmt.Errorf("Can not build reuqest | Reason:", err.Error())
+		fmt.Errorf("Can not build request | Reason:", err.Error())
 		return shared.MakeEmptyResults()
 	}
 
@@ -209,6 +210,7 @@ func (owf owForecast) GetMeasurement(sr business.SearchRequest) []shared.Measure
 			Max:        df.Temp.Max,
 			At:         at.Format(time.RFC3339),
 			RecordedAt: time.Now().Format(time.RFC3339),
+			Loc:        sr.Loc,
 		}
 
 		mrs = append(mrs, fc)

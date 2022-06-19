@@ -1,7 +1,11 @@
 package in
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/pelyib/weather-logger/internal/logger/business"
+	"github.com/pelyib/weather-logger/internal/shared"
 	"github.com/pelyib/weather-logger/internal/shared/mq"
 )
 
@@ -11,7 +15,16 @@ type fetchCommandExecutor struct {
 }
 
 func (executor fetchCommandExecutor) Execute(msg []byte) {
-	measurementResults := executor.mrp.GetMeasurement(business.SearchRequest{}) // TODO: Make SearchRequest from msq [botond.pelyi]
+	msgDecoded := mq.MsgBody{}
+	err := json.Unmarshal(msg, &msgDecoded)
+
+	if err != nil {
+		fmt.Println("banan")
+		fmt.Println(err)
+		return
+	}
+
+	measurementResults := executor.mrp.GetMeasurement(shared.SearchRequest{Loc: msgDecoded.Loc})
 
 	for _, observer := range executor.obs {
 		observer.Notify(measurementResults)

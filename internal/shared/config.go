@@ -32,15 +32,17 @@ type HttpCnf struct {
 	Template struct {
 		Index string `yaml:"index"`
 	} `yaml:"template"`
-	Port     uint16   `yaml:"port"`
-	Database Database `yaml:"database"`
-	Mq       Mq       `yaml:"mq"`
+	Port      uint16   `yaml:"port"`
+	Database  Database `yaml:"database"`
+	Mq        Mq       `yaml:"mq"`
+	Locations []Location
 }
 
 type LoggerCnf struct {
-	Database          Database  `yaml:"database"`
-	Mq                Mq        `yaml:"mq"`
-	Cities            []CityCnf `yaml:"cities"`
+	Database          Database   `yaml:"database"`
+	Mq                Mq         `yaml:"mq"`
+	Cities            []CityCnf  `yaml:"cities"`
+	Locations         []Location `yaml:locations`
 	ForecastProviders struct {
 		OpenWeather struct {
 			AppId string
@@ -49,6 +51,23 @@ type LoggerCnf struct {
 			AppId string
 		} `yaml:"accuweather"`
 	} `yaml:"forecast-providers"`
+}
+
+type Location struct {
+	Name    string `yaml:"name" json:"name"`
+	Country struct {
+		Name       string `yaml:"name" json:"name"`
+		Alpha2Code string `yaml:"alpha2Code" json:"alpha2Code"`
+	} `yaml:"country" json:"country"`
+	GeoLocation struct {
+		Langitude float64 `yaml:"langitude" json:"langitude"`
+		Longitude float64 `yaml:"longitude" json:"longitude"`
+	} `yaml:"geoLocation" json:"geoLocation"`
+	Providers struct {
+		AccuWeather struct {
+			Locationkey string `yaml:"locationKey" json:"locationKey"`
+		} `yaml:"accuWeather" json:"accuWeather"`
+	} `yaml:"providers" json:"providers"`
 }
 
 type CityCnf struct {
@@ -92,6 +111,8 @@ func CreateHttpConf(l Logger) (*HttpCnf, error) {
 
 	out, _ := yaml.Marshal(cnf.Hc)
 	l.Info(fmt.Sprintf("Loaded cnf\n%s", string(out)))
+
+	cnf.Hc.Locations = cnf.Lc.Locations
 
 	return &cnf.Hc, nil
 }

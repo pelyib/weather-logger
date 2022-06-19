@@ -11,9 +11,10 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const bucket string = "http" // Use the same bucket name as in the config [botond.pelyi]
+const bucket string = "charts.monthly" // Use the same bucket name as in the config [botond.pelyi]
 
 type InMemmoryRepository struct {
+	key        DatabaseKey
 	charts     map[string]*business.Chart
 	originRepo business.ChartRepository
 }
@@ -32,13 +33,14 @@ type MigrationDatabaseRepository struct {
 type DatabaseKey func(business.ChartSearchRequestI) []byte
 
 func (repo InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
-	if _, ok := repo.charts[csr.GetYm()]; ok {
-		return repo.charts[csr.GetYm()]
+	key := string(repo.key(csr))
+	if _, ok := repo.charts[key]; ok {
+		return repo.charts[key]
 	}
 
 	c := repo.originRepo.Load(csr)
 
-	repo.charts[csr.GetYm()] = c
+	repo.charts[key] = c
 
 	return c
 }
@@ -61,12 +63,12 @@ func (repo DatabaseRepository) Load(csr business.ChartSearchRequestI) *business.
 			}
 		}
 
-		return errors.New("Chart not foud")
+		return errors.New("Chart not found")
 	})
 
 	if err != nil {
-		repo.l.Info(fmt.Sprintf("Chart not found, creating empty for %s", csr.GetYm()))
-		c = business.MakeEmptyChart(csr.GetYm())
+		repo.l.Info(fmt.Sprintf("Chart not found, creating empty for %s", string(repo.dbKey(csr))))
+		c = business.MakeEmptyChart(csr)
 	}
 
 	return &c
@@ -83,7 +85,7 @@ func (r MigrationDatabaseRepository) Load(csr business.ChartSearchRequestI) *bus
 }
 
 func (r InMemmoryRepository) Save(c business.Chart) {
-	r.charts[c.Ym] = &c
+	r.charts[string(r.key(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}))] = &c
 
 	r.originRepo.Save(c)
 }
@@ -97,7 +99,6 @@ func (r DatabaseRepository) Save(c business.Chart) {
 		} else {
 			r.l.Info("saving")
 			b.Put(r.dbKey(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}), []byte(cjson))
-			//b.Put([]byte(c.Ym), []byte(cjson))
 		}
 
 		return nil
@@ -113,24 +114,27 @@ func (r MigrationDatabaseRepository) Save(c business.Chart) {
 }
 
 func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository {
+	key := func(csr business.ChartSearchRequestI) []byte {
+		var key bytes.Buffer
+		if csr.HasLoc() {
+			key.WriteString(csr.GetLoc().Country.Alpha2Code)
+			key.WriteString(csr.GetLoc().Name)
+		}
+
+		if csr.GetYm() != "" {
+			key.WriteString(csr.GetYm())
+		}
+
+		return key.Bytes()
+	}
+
 	return InMemmoryRepository{
+		key:    key,
 		charts: make(map[string]*business.Chart, 0),
 		originRepo: DatabaseRepository{
-			dbKey: func(csr business.ChartSearchRequestI) []byte {
-				var key bytes.Buffer
-				if csr.HasLoc() {
-					key.WriteString(csr.GetLoc().Country().Alpha2Code())
-					key.WriteString(csr.GetLoc().Name())
-				}
-
-				if csr.GetYm() != "" {
-					key.WriteString(csr.GetYm())
-				}
-
-				return key.Bytes()
-			},
-			db: *db,
-			l:  l,
+			dbKey: key,
+			db:    *db,
+			l:     l,
 		},
 	}
 }

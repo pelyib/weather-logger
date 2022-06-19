@@ -1,7 +1,9 @@
 package business
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
@@ -20,15 +22,26 @@ type Breadcrumb struct {
 	IsSelected bool
 }
 
-func makeCities(loc shared.Location) []Breadcrumb {
-	return []Breadcrumb{
-		//		MakeBreadcrumb("DE - Trier", "c&c", "de/trier", loc.Country().Alpha2Code() == "DE" && loc.Name() == "Trier"),
-		//		MakeBreadcrumb("HU - Budapest", "c&c", "hu/budapest", loc.Country().Alpha2Code() == "HU" && loc.Name() == "Budapest"),
-
-		MakeBreadcrumb("DE - Trier", "c&c", "de/trier", true),
-		MakeBreadcrumb("HU - Budapest", "c&c", "hu/budapest", false),
+func makeCities(loc shared.Location, locations []shared.Location) []Breadcrumb {
+	breadcrumbs := []Breadcrumb{}
+	for _, location := range locations {
+		city := location.Name
+		alpha2Code := location.Country.Alpha2Code
+		isSelected := loc.Name == city && loc.Country.Alpha2Code == alpha2Code
+		breadcrumbs = append(
+			breadcrumbs,
+			MakeBreadcrumb(
+				fmt.Sprintf("%s - %s", alpha2Code, city),
+				"c&c",
+				fmt.Sprintf("%s/%s", strings.ToLower(alpha2Code), strings.ToLower(city)),
+				isSelected,
+			),
+		)
 	}
+
+	return breadcrumbs
 }
+
 func makeYears(ym string) []Breadcrumb {
 	thisYear := time.Now().Year()
 	displayedYear, _ := time.Parse("2006-01", ym)
@@ -61,13 +74,12 @@ func MakeBreadcrumb(t string, up string, uv string, isSelected bool) Breadcrumb 
 	return Breadcrumb{Title: t, UriPart: up, UriValue: uv, IsSelected: isSelected}
 }
 
-func MakeBreadcrumbs(c Chart) [][]Breadcrumb {
-
+func MakeBreadcrumbs(c Chart, locations []shared.Location) [][]Breadcrumb {
 	return [][]Breadcrumb{
 		[]Breadcrumb{
 			MakeBreadcrumb("he!!o we4th3r", "noop", "noop", true),
 		},
-		makeCities(c.Loc),
+		makeCities(c.Loc, locations),
 		makeYears(c.Ym),
 		makeMonths(c.Ym),
 	}

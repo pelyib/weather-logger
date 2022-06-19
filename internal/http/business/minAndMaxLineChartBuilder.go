@@ -29,7 +29,7 @@ func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
 
 		at, _ := time.Parse(time.RFC3339, mr.At)
 
-		chart := b.r.Load(ChartSearchRequest{Ym: at.Format("2006-01")})
+		chart := b.r.Load(ChartSearchRequest{Ym: at.Format("2006-01"), Loc: mr.Loc})
 
 		min := b.minDs(chart)
 		max := b.maxDs(chart)
