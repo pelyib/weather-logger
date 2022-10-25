@@ -1,7 +1,7 @@
 # Weather logger
 
-GO application to see how accurate the weather application forecasts.
-It collects forecasts from different provider, aggregate them and drew a chart from them.
+A GO app to find out how accurate weather  forecasts are.
+It collects forecasts from different providers, aggregates them, then drews a chart from them.
 
 ## Providers
 - [Accuweather](https://developer.accuweather.com/)
