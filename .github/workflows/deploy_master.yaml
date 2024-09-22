@@ -52,7 +52,7 @@ jobs:
       id: push
       uses: docker/build-push-action@v6.7.0
       with:
-        platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
+        #platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
         context: .
         file: ${{ github.workspace }}/docker/Dockerfile.${{ matrix.app }}
         target: dev
