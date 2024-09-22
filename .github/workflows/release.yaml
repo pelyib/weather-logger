@@ -16,14 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
-        goarch: ["386", amd64, arm64]
+        # TODO: enable again the original matrix
+        goos: [darwin]
+        goarch: [amd64, arm64]
         app: [commander, http, logger]
-        exclude:
-          - goarch: "386"
-            goos: darwin
-          - goarch: arm64
-            goos: windows
+        # goos: [linux, windows, darwin]
+        # goarch: ["386", amd64, arm64]
+        # app: [commander, http, logger]
+        # exclude:
+        #   - goarch: "386"
+        #     goos: darwin
+        #   - goarch: arm64
+        #     goos: windows
     steps:
     - uses: actions/checkout@v4
     - uses: wangyoucao577/go-release-action@v1
