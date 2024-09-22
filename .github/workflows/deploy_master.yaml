@@ -59,4 +59,4 @@ jobs:
         file: ./docker/Dockerfile.${{ matrix.app }}
         target: dev
         push: true
-        tags: pelyib/wl-${{ matrix.app }}:latest
+        tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:latest
