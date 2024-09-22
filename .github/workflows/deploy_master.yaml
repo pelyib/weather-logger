@@ -46,7 +46,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build and push Docker image
       id: push
-      # run: docker build --push -t ${{ github.actor }}/weather-logger-${{ matrix.app }}:latest -f ${{ github.workspace }}/docker/Dockerfile.${{ matrix.app }} ${{ github.workspace }}
       uses: docker/build-push-action@v6.7.0
       with:
         platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
@@ -54,4 +53,4 @@ jobs:
         file: ./docker/Dockerfile.${{ matrix.app }}
         target: dev
         push: true
-        tags: pelyib/weather-logger-${{ matrix.app }}:latest
+        tags: pelyib/wl-${{ matrix.app }}:latest
