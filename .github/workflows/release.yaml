@@ -6,15 +6,19 @@ permissions:
     contents: write
     packages: write
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   releases-matrix:
     name: Release Go Binary
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
         goos: [linux, windows, darwin]
         goarch: ["386", amd64, arm64]
+        app: [commander, http, logger]
         exclude:
           - goarch: "386"
             goos: darwin
@@ -29,8 +33,8 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         goversion: "https://go.dev/dl/go1.17.13.linux-amd64.tar.gz"
-        project_path: "./cmd/commander"
-        binary_name: "commander"
+        project_path: "./cmd/{{ matrix.app }}"
+        binary_name: ${{matrix.app}}
         extra_files: README.md
     - name: Check release folder
       run: ls -al ${{steps.asser_releaser.outputs.release_asset_dir}}
