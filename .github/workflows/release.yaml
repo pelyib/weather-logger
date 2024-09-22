@@ -33,7 +33,7 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         goversion: "https://go.dev/dl/go1.17.13.linux-amd64.tar.gz"
-        project_path: "./cmd/{{ matrix.app }}"
+        project_path: "./cmd/${{ matrix.app }}"
         binary_name: ${{matrix.app}}
         extra_files: README.md
     - name: Check release folder
