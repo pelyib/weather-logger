@@ -37,7 +37,7 @@ jobs:
     - name: Build
       run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/cmd/${{ matrix.app }}
     - name: Link app
-      run: rm -f ${{ github.workspace }}/bin/${{ matrix.app }} && cp ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/${{ matrix.app }}
+      run: rm -f ${{ github.workspace }}/bin/${{ matrix.app }} && cp ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/bin/${{ matrix.app }}
     - name: Log in to the Container registry
       uses: docker/login-action@v3.3.0
       with:
