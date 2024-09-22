@@ -31,7 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: List files
-      run: ls -al ${{ github.workspace }}
+      run: ls -al ${{ github.workspace }}/docker
     # - name: Setup Go
     #   uses: actions/setup-go@v5
     #   with:
