@@ -1,0 +1,58 @@
+name: Build and Push Docker Image to GitHub Packages
+
+on:
+  push:
+    branches:
+      - master
+      - 8-publish-docker-container # TODO: remove it later
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # TODO: enable again the original matrix
+        goos: [darwin]
+        goarch: [amd64, arm64]
+        app: [commander, http, logger]
+        # goos: [linux, windows, darwin]
+        # goarch: ["386", amd64, arm64]
+        # app: [commander, http, logger]
+        # exclude:
+        #   - goarch: "386"
+        #     goos: darwin
+        #   - goarch: arm64
+        #     goos: windows
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.17.x'
+    - name: Install dependencies
+      run: go get .
+    - name: Build
+      run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ./bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/${{ matrix.app }}
+    # - name: Test with the Go CLI
+    #   run: go test
+    - name: Log in to the Container registry
+      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push Docker image
+      id: push
+      uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      with:
+        platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
+        context: ./docker/Docker.${{ matrix.app }}
+        target: dev
+        push: true
+        tags: pelyib/weather-logger-${{ matrix.app }}:latest
+        labels: ${{ steps.meta.outputs.labels }}
