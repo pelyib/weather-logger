@@ -47,7 +47,7 @@ jobs:
       uses: docker/build-push-action@v6.7.0
       with:
         platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
-        context: .
+        context: ./
         file: ./docker/Dockerfile.${{ matrix.app }}
         target: dev
         push: true
