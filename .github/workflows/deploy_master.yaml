@@ -36,8 +36,6 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.17.x'
-    - name: Install dependencies
-      run: go get ${{ github.workspace }}/
     - name: Build
       run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/cmd/${{ matrix.app }}
     - name: List built binaries
