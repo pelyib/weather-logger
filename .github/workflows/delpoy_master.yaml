@@ -51,7 +51,7 @@ jobs:
       uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
       with:
         platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
-        context: ${{ github.workspace }}/docker/Docker.${{ matrix.app }}
+        context: ${{ github.workspace }}/docker/Dockerfile.${{ matrix.app }}
         target: dev
         push: true
         tags: pelyib/weather-logger-${{ matrix.app }}:latest
