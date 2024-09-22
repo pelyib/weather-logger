@@ -46,6 +46,8 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    - name: List files
+      run: ls -al ./
     - name: Build and push Docker image
       id: push
       uses: docker/build-push-action@v6.7.0
