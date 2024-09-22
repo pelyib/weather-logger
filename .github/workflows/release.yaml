@@ -1,11 +1,6 @@
-# on:
-#   release:
-#     types: [created]
-# TODO: revert this to run this action on releases
 on:
-  push:
-    branches:
-      - 8-publish-docker-container
+  release:
+    types: [created]
 
 permissions:
     contents: write
