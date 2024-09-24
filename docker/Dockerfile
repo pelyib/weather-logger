@@ -10,6 +10,8 @@ WORKDIR /src
 
 COPY . /src
 
+RUN printenv
+
 RUN go build -o /out/$APP /src/cmd/$APP
 
 FROM alpine:3.15.0 as app
