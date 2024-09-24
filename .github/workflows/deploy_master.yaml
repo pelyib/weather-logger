@@ -43,6 +43,5 @@ jobs:
         build-args: APP=${{ matrix.app }}
         context: ./
         file: ./docker/Dockerfile.${{ matrix.app }}
-        target: app
         push: true
         tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:latest
