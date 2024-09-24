@@ -22,28 +22,9 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        # TODO: enable again the original matrix
-        goos: [linux]
-        goarch: [amd64, arm64]
         app: [commander, http, logger]
-        # goos: [linux, windows, darwin]
-        # goarch: ["386", amd64, arm64]
-        # app: [commander, http, logger]
-        # exclude:
-        #   - goarch: "386"
-        #     goos: darwin
-        #   - goarch: arm64
-        #     goos: windows
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.17.x'
-    - name: Build
-      run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/cmd/${{ matrix.app }}
-    - name: Link app
-      run: rm -f ${{ github.workspace }}/bin/${{ matrix.app }} && cp ${{ github.workspace }}/bin/${{ matrix.app }}-${{ matrix.goos }}-${{ matrix.goarch }} ${{ github.workspace }}/bin/${{ matrix.app }}
     - name: Log in to the Container registry
       uses: docker/login-action@v3.3.0
       with:
@@ -54,9 +35,10 @@ jobs:
       id: push
       uses: docker/build-push-action@v6.7.0
       with:
-        platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
+        platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm64
+        build-args: APP=${{ matrix.app }}
         context: ./
         file: ./docker/Dockerfile.${{ matrix.app }}
-        target: dev
+        target: app
         push: true
         tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:latest
