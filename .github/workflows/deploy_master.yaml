@@ -41,7 +41,8 @@ jobs:
       with:
         platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm64
         build-args: APP=${{ matrix.app }}
-        context: ./
+        context: .
         file: ./docker/Dockerfile
+        target: app
         push: true
         tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:latest

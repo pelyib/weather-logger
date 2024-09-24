@@ -1,12 +1,18 @@
 FROM golang:1.17.5-alpine as builder
 
-WORKDIR /source
+ENV CGO_ENABLED=0
+ENV GOOS=$TARGETOS
+ENV GOARCH=$TARGETARCH
 
-COPY . .
+RUN apk add --no-cache file git
 
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/$APP ./cmd/$APP
+WORKDIR /src
 
-FROM alpine:3.15.0
+COPY . /src
+
+RUN go build -o /out/$APP /src/cmd/$APP
+
+FROM alpine:3.15.0 as app
 
 COPY --from=builder /out/$APP /usr/local/bin/$APP
 
