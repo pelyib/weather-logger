@@ -18,8 +18,6 @@ RUN go build -o /out/wl-app /src/cmd/$APP
 
 FROM alpine:3.15.0 AS app
 
-ARG APP
-
 COPY --from=builder /out/wl-app /usr/local/bin/wl-app
 
-CMD ["wl-app"]
+ENTRYPOINT ["wl-app"]
