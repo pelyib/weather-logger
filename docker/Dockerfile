@@ -14,14 +14,12 @@ WORKDIR /src
 
 COPY . /src
 
-RUN printenv
-
-RUN go build -o /out/$APP /src/cmd/$APP
+RUN go build -o /out/wl-app /src/cmd/$APP
 
 FROM alpine:3.15.0 AS app
 
 ARG APP
 
-COPY --from=builder /out/$APP /usr/local/bin/$APP
+COPY --from=builder /out/wl-app /usr/local/bin/wl-app
 
-CMD ["$APP"]
+CMD ["wl-app"]

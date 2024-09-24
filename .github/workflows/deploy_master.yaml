@@ -13,7 +13,7 @@ env:
 
 jobs:
   releases-matrix:
-    name: Release Go Binary
+    name: Release Docker image with GO binary
     runs-on: ubuntu-latest
     permissions:
       contents: read
