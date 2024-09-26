@@ -5,6 +5,8 @@ on:
     branches:
       - master
       - 8-publish-docker-container # TODO: remove it later
+    tags:
+      - '*'
 
 env:
   REGISTRY: ghcr.io
@@ -25,6 +27,14 @@ jobs:
         app: [commander, http, logger]
     steps:
     - uses: actions/checkout@v4
+    - name: Determine Docker image tag
+      id: tag
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+        else
+          echo "TAG=latest" >> $GITHUB_ENV
+        fi
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -45,4 +55,4 @@ jobs:
         file: ./docker/Dockerfile
         target: app
         push: true
-        tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:latest
+        tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:${{ env.TAG }}
