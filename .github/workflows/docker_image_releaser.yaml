@@ -63,7 +63,8 @@ jobs:
         file: ./docker/Dockerfile
         target: app
         push: true
-        tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:${{ env.TAG }}
+        #tags: ${{ env.REGISTRY }}/pelyib/wl-${{ matrix.app }}:${{ env.TAG }}
+        tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
