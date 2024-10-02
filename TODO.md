@@ -11,8 +11,8 @@ min_max, max_min `line` data should be hidden (`data.*.datasets.showLine: false`
 
 ## Backend
 
-- [ ] Add "raw_reponses" to all sources, persist raw responses from the origin resources.
-- [ ] Make accessable raw_reponses on HTTP
+- [ ] Add "raw_responses" to all sources, persist raw responses from the origin resources.
+- [ ] Make accessible raw_responses on HTTP
 - [ ] Start to write tests
 - [ ] Create min_max and max_min `line` dataset
 

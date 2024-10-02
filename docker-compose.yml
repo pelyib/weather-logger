@@ -1,29 +1,40 @@
-version: '3.7'
 services:
   http:
     build:
-      dockerfile: ./docker/Dockerfile.http
+      dockerfile: ./docker/Dockerfile
       context: .
-      target: dev
+      target: app
+      args:
+        - APP=http
+        - TARGETOS=linux
+        - TARGETARCH=amd64
     volumes:
-      - ./db:/app/db:rw
+      - ./db/dev:/app/db:rw
       - ./configs/config.dev.yaml:/app/config.yaml:ro
       - ./web:/app/web:ro
     ports:
       - "8095:8090"
     environment:
       - CONFIG_FILE=/app/config.yaml
-    command: /app/http
+    depends_on:
+      - mq
+
   logger:
     build:
-      dockerfile: ./docker/Dockerfile.logger
+      dockerfile: ./docker/Dockerfile
       context: .
-      target: dev
+      target: app
+      args:
+        - APP=logger
+        - TARGETOS=linux
+        - TARGETARCH=amd64
     volumes:
       - ./db/dev:/app/db:rw
       - ./configs/config.dev.yaml:/app/config.yaml:ro
     environment:
       - CONFIG_FILE=/app/config.yaml
-    command: /app/logger
+    depends_on:
+      - mq
+
   mq:
     image: rabbitmq:3.9.13-alpine
