@@ -35,3 +35,10 @@ services:
     ports:
       - "15672:15672" # management port
       - "5672:5672" # AMQP port
+
+  couchdb:
+    environment:
+      - COUCHDB_USER=couchdb
+      - COUCHDB_PASSWORD=couchdb
+    ports:
+      - "5984:5984"

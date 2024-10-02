@@ -28,13 +28,11 @@ services:
         - APP=logger
         - TARGETOS=linux
         - TARGETARCH=amd64
-    volumes:
-      - ./db/dev:/app/db:rw
-      - ./configs/config.dev.yaml:/app/config.yaml:ro
-    environment:
-      - CONFIG_FILE=/app/config.yaml
     depends_on:
       - mq
 
   mq:
     image: rabbitmq:3.9.13-alpine
+
+  couchdb:
+    image: couchdb:3.3.3
