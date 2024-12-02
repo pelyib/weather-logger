@@ -8,16 +8,9 @@ services:
         - APP=http
         - TARGETOS=linux
         - TARGETARCH=amd64
-    volumes:
-      - ./db/dev:/app/db:rw
-      - ./configs/config.dev.yaml:/app/config.yaml:ro
-      - ./web:/app/web:ro
-    ports:
-      - "8095:8090"
-    environment:
-      - CONFIG_FILE=/app/config.yaml
     depends_on:
       - mq
+      - couchdb
 
   logger:
     build:
@@ -30,9 +23,20 @@ services:
         - TARGETARCH=amd64
     depends_on:
       - mq
+      - couchdb
 
   mq:
     image: rabbitmq:3.9.13-alpine
 
   couchdb:
-    image: couchdb:3.3.3
+    build:
+      context: .
+      dockerfile: ./docker/couchdb/Dockerfile
+    networks:
+      - db
+      - default
+
+networks:
+  db:
+    driver: bridge
+    internal: true

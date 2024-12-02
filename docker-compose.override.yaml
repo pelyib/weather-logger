@@ -42,3 +42,15 @@ services:
       - COUCHDB_PASSWORD=couchdb
     ports:
       - "5984:5984"
+
+  db-init:
+    build:
+      context: .
+      dockerfile: ./docker/couchdb/Dockerfile.init
+    depends_on:
+      - couchdb
+    volumes:
+      - ./.env:/.env:ro
+    entrypoint: ["/script.sh", "couchdb", "couchdb", "/.env"]
+    networks:
+      - db
