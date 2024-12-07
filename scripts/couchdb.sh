@@ -89,9 +89,6 @@ function ensure_db_roles {
 
     echo "ensure '${role}' role exists in ${db_name}"
 
-    # fetch current _security
-    # push role to the $.members.roles array
-    # put 
     response=$(curl \
         --request GET \
         -H "${AUTH_HEADER}" \
