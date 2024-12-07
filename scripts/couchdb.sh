@@ -20,6 +20,8 @@ function ensure_user_created () {
     local user_password=$2
     local roles="$3"
 
+    echo "ensure '${user_name}' user exists with roles ${roles}"
+
     is_user_already_created=$(curl \
         --request GET \
         -H "${AUTH_HEADER}" \
@@ -38,19 +40,21 @@ function ensure_user_created () {
             "$COUCHDB_HOST/_users/org.couchdb.user:${user_name}")
 
         if [[ ${creation_result} -ne 201 ]]; then
-            echo "'${user_name}' creation failed"
+            echo " └─'${user_name}' creation failed"
             exit 1
         fi
 
-        echo "'${user_name}' created successfully"
+        echo " └─'${user_name}' created successfully"
         return
     fi
 
-    echo "'${user_name}' already exists"
+    echo " └─'${user_name}' already exists"
 }
 
 function ensure_db_created() {
     local db_name=$1
+
+    echo "ensure '${db_name}' is created"
 
     is_db_already_created=$(curl \
         --request HEAD \
@@ -68,15 +72,82 @@ function ensure_db_created() {
             "${COUCHDB_HOST}/${db_name}")
 
         if [[ ${creation_result} -ne 201 ]]; then
-            echo "'${db_name}' creation failed"
+            echo " └─'${db_name}' creation failed"
             exit 1
         fi
 
-        echo "'${db_name}' created successfully"
+        echo " └─'${db_name}' created successfully"
         return
     fi
 
-    echo "'${db_name}' already exists"
+    echo " └─'${db_name}' already exists"
+}
+
+function ensure_db_roles {
+    db_name=$1
+    role=$2
+
+    echo "ensure '${role}' role exists in ${db_name}"
+
+    # fetch current _security
+    # push role to the $.members.roles array
+    # put 
+    response=$(curl \
+        --request GET \
+        -H "${AUTH_HEADER}" \
+        -s -w "\n%{http_code}" \
+        "${COUCHDB_HOST}/${db_name}/_security" \
+    )
+
+    body=$(echo "$response" | sed '$d')
+    status_code=$(echo "$response" | tail -n1)
+
+    updated_json=$(echo "$body" | jq -c --arg role "$role" '.members.roles |= if index($role) == null then . + [$role] else . end')
+
+    if [[ "$body" == "$updated_json" ]]; then
+        echo " └─${role} already exists in ${db_name}"
+        return
+    fi
+
+    put_result=$(curl \
+        --request PUT \
+        -H "${AUTH_HEADER}" \
+        -H "Accept: application/json" \
+        -H "Content-Type: application/json" \
+        -d "${updated_json}" \
+        -o /dev/null -s -w "%{http_code}" \
+        "${COUCHDB_HOST}/${db_name}/_security" \
+    )
+
+        if [[ ${put_result} -ne 200 ]]; then
+            echo " └─adding '${role}' to ${db_name} failed"
+            exit 1
+        fi
+
+        echo " └─adding '${role}' to ${db_name} succeeded"
+        return
+}
+
+function ensure_valdocfunc_created() {
+    db_name=$1
+
+    echo "ensure validate_doc_update in '${db_name}' exists"
+
+    creation_result=$(curl \
+        --request PUT \
+        -H "${AUTH_HEADER}" \
+        -d '{"validate_doc_update": "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.includes(\"wl.metrics.rw\")) { return; } throw({forbidden: \"not able now!\" });}"}' \
+        -o /dev/null -s -w "%{http_code}" \
+        "${COUCHDB_HOST}/${db_name}/_design/only-rw-can-write"
+    )
+
+    if [[ ${creation_result} -ne 201 ]]; then
+        echo " └─validate_doc_update in '${db_name}' creation failed"
+        exit 1
+    fi
+
+    echo " └─validate_doc_update in '${db_name}' created successfully"
+    return
 }
 
 # check if script received 3 parameters
@@ -99,7 +170,7 @@ AUTH_HEADER="Authorization: Basic $(echo -n "$ADMIN_USER:$ADMIN_PASSWORD" | base
 
 if [[ 
         -z "$COUCHDB_HOST" ||
-        -z "$COUCHDB_DB_NAME_API_RAW_RESPONSE" ||
+        -z "$COUCHDB_DB_NAME_API_RAW_RESPONSES" ||
         -z "$COUCHDB_DB_NAME_METRICS" ||
         -z "$COUCHDB_USER_NAME_LOGGER" || 
         -z "$COUCHDB_USER_PASSWORD_LOGGER" ||
@@ -125,21 +196,22 @@ fi
 
 echo "admin credentials are valid"
 
-ensure_user_created $COUCHDB_USER_NAME_LOGGER $COUCHDB_USER_PASSWORD_LOGGER "[\"wl.metric.rw\", \"wl.metric.ro\"]"
-ensure_user_created $COUCHDB_USER_NAME_UI $COUCHDB_USER_PASSWORD_UI "[\"wl.metric.ro\"]"
+ensure_user_created $COUCHDB_USER_NAME_LOGGER $COUCHDB_USER_PASSWORD_LOGGER "[\"wl.metrics.rw\", \"wl.raw_responses.rw\"]"
+ensure_user_created $COUCHDB_USER_NAME_UI $COUCHDB_USER_PASSWORD_UI "[\"wl.metrics.ro\"]"
 
+echo ""
 echo "users are ready"
+echo ""
 
-ensure_db_created "raw_response"
-ensure_db_created "metrics"
+ensure_db_created "${COUCHDB_DB_NAME_API_RAW_RESPONSES}"
+ensure_db_created "${COUCHDB_DB_NAME_METRICS}"
 
-# Great, users and DB are ready
-# Set the _security objects
-# Allow object creation and update for admins (no extra work needed)
-# Allow object creation for users with wl.metric.rw role
-# Users with wl.metrics.ro can not create or update any object
+echo ""
+echo "dbs are ready"
+echo ""
 
-# more details
-# https://docs.couchdb.org/en/stable/api/database/security.html#api-db-security
-# https://docs.couchdb.org/en/stable/query-server/protocol.html#validate-doc-update
+ensure_db_roles "${COUCHDB_DB_NAME_API_RAW_RESPONSES}" "wl.raw_responses.rw"
+ensure_db_roles "${COUCHDB_DB_NAME_METRICS}" "wl.metrics.rw"
+ensure_db_roles "${COUCHDB_DB_NAME_METRICS}" "wl.metrics.ro"
 
+ensure_valdocfunc_created "metrics"
