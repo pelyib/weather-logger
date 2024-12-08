@@ -3,7 +3,7 @@
 # Setup CouchDB 
 # script parameters: admin credentials, .env config file
 # .env should define 
-# - 2 DBs: api_raw_response, metrics
+# - 2 DBs: api_raw_responses, metrics
 # - 1 couchdb user (it is called "logger" ) that has write access to both
 # - 1 couchdb user (it is called "ui" ) that has read access to metrics only
 # .env file:
@@ -93,8 +93,7 @@ function ensure_db_roles {
         --request GET \
         -H "${AUTH_HEADER}" \
         -s -w "\n%{http_code}" \
-        "${COUCHDB_HOST}/${db_name}/_security" \
-    )
+        "${COUCHDB_HOST}/${db_name}/_security")
 
     body=$(echo "$response" | sed '$d')
     status_code=$(echo "$response" | tail -n1)
@@ -113,33 +112,48 @@ function ensure_db_roles {
         -H "Content-Type: application/json" \
         -d "${updated_json}" \
         -o /dev/null -s -w "%{http_code}" \
-        "${COUCHDB_HOST}/${db_name}/_security" \
-    )
+        "${COUCHDB_HOST}/${db_name}/_security")
 
-        if [[ ${put_result} -ne 200 ]]; then
-            echo " └─adding '${role}' to ${db_name} failed"
-            exit 1
-        fi
+    if [[ ${put_result} -ne 200 ]]; then
+        echo " └─adding '${role}' to ${db_name} failed"
+        exit 1
+    fi
 
-        echo " └─adding '${role}' to ${db_name} succeeded"
-        return
+    echo " └─adding '${role}' to ${db_name} succeeded"
+    return
 }
 
+# TODO: add object validation [pelyib]
+# @see: https://docs.couchdb.org/en/stable/ddocs/ddocs.html#validate-document-update-functions
+#
+# TODO: checked role is not injected like the DB, pass validation fn [pelyib]
 function ensure_valdocfunc_created() {
     db_name=$1
 
     echo "ensure validate_doc_update in '${db_name}' exists"
+
+    is_already_created=$(curl \
+        --head \
+        -H "${AUTH_HEADER}" \
+        -o /dev/null -s -w "%{http_code}" \
+        "${COUCHDB_HOST}/${db_name}/_design/only-rw-can-write" \
+    )
+
+    if [[ ${is_already_created} -eq 200 ]]; then
+        echo " └─validate_doc_update in '${db_name}' already exists"
+        return
+    fi
 
     creation_result=$(curl \
         --request PUT \
         -H "${AUTH_HEADER}" \
         -d '{"validate_doc_update": "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.includes(\"wl.metrics.rw\")) { return; } throw({forbidden: \"not able now!\" });}"}' \
         -o /dev/null -s -w "%{http_code}" \
-        "${COUCHDB_HOST}/${db_name}/_design/only-rw-can-write"
-    )
+        "${COUCHDB_HOST}/${db_name}/_design/only-rw-can-write")
 
     if [[ ${creation_result} -ne 201 ]]; then
         echo " └─validate_doc_update in '${db_name}' creation failed"
+        echo ${creation_result}
         exit 1
     fi
 
@@ -166,16 +180,16 @@ AUTH_HEADER="Authorization: Basic $(echo -n "$ADMIN_USER:$ADMIN_PASSWORD" | base
 . $3
 
 if [[ 
-        -z "$COUCHDB_HOST" ||
+    -z "$COUCHDB_HOST" ||
         -z "$COUCHDB_DB_NAME_API_RAW_RESPONSES" ||
         -z "$COUCHDB_DB_NAME_METRICS" ||
         -z "$COUCHDB_USER_NAME_LOGGER" || 
         -z "$COUCHDB_USER_PASSWORD_LOGGER" ||
         -z "$COUCHDB_USER_NAME_UI" || 
         -z "$COUCHDB_USER_PASSWORD_UI"
-    ]]; then
-    echo ".env file is invalid, one or more parameters are missing"
-    exit 1
+            ]]; then
+            echo ".env file is invalid, one or more parameters are missing"
+            exit 1
 fi
 
 echo ".env file is valid"
