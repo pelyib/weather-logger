@@ -42,7 +42,7 @@ type LoggerCnf struct {
 	Database          Database   `yaml:"database"`
 	Mq                Mq         `yaml:"mq"`
 	Cities            []CityCnf  `yaml:"cities"`
-	Locations         []Location `yaml:locations`
+	Locations         []Location `yaml:"locations"`
 	ForecastProviders struct {
 		OpenWeather struct {
 			AppId string

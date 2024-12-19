@@ -127,6 +127,7 @@ function ensure_db_roles {
 # @see: https://docs.couchdb.org/en/stable/ddocs/ddocs.html#validate-document-update-functions
 #
 # TODO: checked role is not injected like the DB, pass validation fn [pelyib]
+# TODO: allow admin to change objects
 function ensure_valdocfunc_created() {
     db_name=$1
 
