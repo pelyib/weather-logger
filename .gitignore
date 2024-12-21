@@ -5,6 +5,5 @@ configs/config*.yaml
 configs/mq*.json
 
 # folders
-vendor/
 bin/
 db/
