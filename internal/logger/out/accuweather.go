@@ -1,9 +1,11 @@
 package out
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
@@ -61,6 +63,8 @@ func (awh awHistorical) GetMeasurement(searchRequest shared.SearchRequest) []sha
 		awh.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return mrs
 	}
+
+	// TODO: save the raw API response to CouchDB
 
 	var HistoricalDecodedResponseBody []struct {
 		LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
@@ -154,28 +158,63 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 	}
 
 	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
+	remoteApiResponse, err := io.ReadAll(res.Body)
 
 	if err != nil {
 		awf.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return mrs
 	}
 
-	err = awf.db.Update(func(t *bolt.Tx) error {
-		b := t.Bucket([]byte("accuweather.raw_response"))
+	var result map[string]interface{}
+	_ = json.Unmarshal(remoteApiResponse, &result)
+	couchdbReqBody := struct {
+		Obj struct {
+			Called_at time.Time   `json:"called_at"`
+			Source    string      `json:"source"`
+			Raw       interface{} `json:"raw"`
+		} `json:"obj"`
+	}{
+		Obj: struct {
+			Called_at time.Time   `json:"called_at"`
+			Source    string      `json:"source"`
+			Raw       interface{} `json:"raw"`
+		}{
+			Called_at: time.Now(),
+			Source:    "accuweather.forecasts",
+			Raw:       result,
+		},
+	}
+	couchdbSerializedRecord, err := json.Marshal(couchdbReqBody)
+	if err != nil {
+		awf.l.Error(fmt.Sprintf("Could not serialize CouchDB record, reason: %s", err.Error()))
+	}
 
-		err = b.Put([]byte(time.Now().Format(time.UnixDate)), body)
-		awf.l.Info("Put done")
-		if err != nil {
-			return err
-		}
+	rand.Seed(time.Now().UnixNano())
+	addToCouchDBReq, err := http.NewRequest(
+		"PUT",
+		fmt.Sprintf("http://couchdb:5984/api_raw_responses/%d", rand.Intn(10000)),
+		bytes.NewBuffer(couchdbSerializedRecord),
+	)
+	if err != nil {
+		awf.l.Error(fmt.Sprintf("Could not build CouchDB request, reason: %s", err.Error()))
+	}
+	addToCouchDBReq.Header.Add("Accept", "application/json")
+	addToCouchDBReq.SetBasicAuth("logger", "logger")
 
-		return nil
-	})
+	couchDbRes, err := client.Do(addToCouchDBReq)
 
 	if err != nil {
 		awf.l.Error(fmt.Sprintf("Failed to connect to DB, could not save, reason: %s", err.Error()))
 	}
+
+	defer couchDbRes.Body.Close()
+	_, err = io.ReadAll(couchDbRes.Body)
+	if err != nil {
+		awf.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
+		return mrs
+	}
+
+	awf.l.Info(fmt.Sprintf("Sent to couchdb"))
 
 	var decBody struct {
 		DailyForecasts []struct {
@@ -191,7 +230,7 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 		}
 	}
 
-	json.Unmarshal(body, &decBody)
+	json.Unmarshal(remoteApiResponse, &decBody)
 
 	for _, df := range decBody.DailyForecasts {
 		at, _ := time.Parse(time.RFC3339, df.Date)

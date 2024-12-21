@@ -35,10 +35,12 @@ func main() {
 		Exchange: "http",
 		Handlers: map[string]mq.Executor{
 			business.COMMAND_FETCH_FORECASTS: in.MakeFetchCommandExecutor(
-				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
-					out.MakeAccuWeatherForecastProvider(cnf, &db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
-					out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Operweater.Forecast")),
-				}),
+				business.MakeMeasurementResultProviderPool(
+					[]business.MeasurementResultProvider{
+						out.MakeAccuWeatherForecastProvider(cnf, &db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
+						out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Operweater.Forecast")),
+					},
+				),
 				observers,
 			),
 			business.COMMAND_FETCH_HISTORICAL: in.MakeFetchCommandExecutor(
