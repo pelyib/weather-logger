@@ -12,6 +12,7 @@ type AdapterMock struct {
 	FetchCalled  bool
 	FetchInput   shared.SearchRequest
 	FetchResult  []byte
+	FetchError   error
 	MapperCalled bool
 	MapperInput  []byte
 	MapperResult []shared.MeasurementResult
@@ -21,15 +22,19 @@ func (m *AdapterMock) SourceId() string {
 	return "test.test"
 }
 
-func (m *AdapterMock) Fetch(sr shared.SearchRequest) []byte {
+func (m *AdapterMock) Fetch(sr shared.SearchRequest) ([]byte, error) {
 	m.FetchCalled = true
 	m.FetchInput = sr
 
-	if m.FetchResult == nil {
-		return []byte{}
+	if m.FetchError != nil {
+		return nil, m.FetchError
 	}
 
-	return m.FetchResult
+	if m.FetchResult == nil {
+		return []byte{}, nil
+	}
+
+	return m.FetchResult, nil
 }
 
 func (m *AdapterMock) MapToMeasurements(rawApiRes []byte) []shared.MeasurementResult {
@@ -52,6 +57,18 @@ func (c *couchDbClientMock) saveRawApiRes(sourceId string, rawApiRes []byte) {
 	c.SaveRawApiResInput = rawApiRes
 }
 
+type loggerMock struct {
+	ErrorCalled bool
+	ErrorInput  string
+}
+
+func (l *loggerMock) Info(msg string)    {}
+func (l *loggerMock) Warning(msg string) {}
+func (l *loggerMock) Error(msg string) {
+	l.ErrorCalled = true
+	l.ErrorInput = msg
+}
+
 func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
 	adapterMock := &AdapterMock{}
 	couchDbClientMock := &couchDbClientMock{}
@@ -72,6 +89,32 @@ func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
 	}
 	if results == nil || len(results) != len(expectedResults) {
 		t.Errorf("Expected results to be %v, got %v", expectedResults, results)
+	}
+}
+
+func TestGetMeasurement_returnsEmptyCollection_WhenFetchFails(t *testing.T) {
+	adapterMock := &AdapterMock{}
+	couchDbClientMock := &couchDbClientMock{}
+	loggerMock := &loggerMock{}
+	fetcher := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+		logger:                 loggerMock,
+	}
+	searchRequest := shared.SearchRequest{}
+	adapterMock.FetchResult = nil
+	adapterMock.FetchError = fmt.Errorf("test error")
+
+	results := fetcher.GetMeasurement(searchRequest)
+	if results == nil || len(results) != 0 {
+		t.Errorf("Expected results to be empty, got %v", results)
+	}
+
+	if !loggerMock.ErrorCalled {
+		t.Errorf("Expected logger to be called, but it was not")
+	}
+	if loggerMock.ErrorInput != "Fetching test.test failed, reason: test error" {
+		t.Errorf("Expected logger to be called with 'Fetching test.test failed, reason: test error', got %s", loggerMock.ErrorInput)
 	}
 }
 

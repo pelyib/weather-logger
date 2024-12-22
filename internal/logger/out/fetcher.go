@@ -1,6 +1,7 @@
 package out
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
@@ -8,7 +9,7 @@ import (
 
 type WeatherProviderAdapter interface {
 	SourceId() string
-	Fetch(sr shared.SearchRequest) []byte
+	Fetch(sr shared.SearchRequest) ([]byte, error)
 	MapToMeasurements(rawApiRes []byte) []shared.MeasurementResult
 }
 
@@ -19,6 +20,7 @@ type DbClient interface {
 type Fetcher struct {
 	weatherProviderAdapter WeatherProviderAdapter
 	dbClient               DbClient
+	logger                 shared.Logger
 }
 
 type dbRecord struct {
@@ -28,7 +30,12 @@ type dbRecord struct {
 }
 
 func (f Fetcher) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
-	rawApiRes := f.weatherProviderAdapter.Fetch(searchRequest)
+	rawApiRes, err := f.weatherProviderAdapter.Fetch(searchRequest)
+
+	if err != nil {
+		f.logger.Error(fmt.Sprintf("Fetching %s failed, reason: %s", f.weatherProviderAdapter.SourceId(), err.Error()))
+		return shared.MakeEmptyResults()
+	}
 
 	f.dbClient.saveRawApiRes(f.weatherProviderAdapter.SourceId(), rawApiRes)
 

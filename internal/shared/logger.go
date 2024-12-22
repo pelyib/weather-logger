@@ -17,7 +17,7 @@ type Logger interface {
 }
 
 type cliLogger struct {
-	l log.Logger
+	l *log.Logger
 }
 
 type nullLogger struct{}
@@ -41,7 +41,7 @@ func (l cliLogger) print(msg string) {
 func MakeCliLogger(app string, prefix string) Logger {
 	l := log.New(os.Stdout, fmt.Sprintf("[%s][%s]", app, prefix), log.Lmsgprefix|log.Ltime)
 
-	return cliLogger{l: *l}
+	return cliLogger{l: l}
 }
 
 func (l nullLogger) Info(msg string)    {}
