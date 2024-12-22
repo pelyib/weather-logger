@@ -8,7 +8,7 @@ import (
 	"github.com/pelyib/weather-logger/internal/shared"
 )
 
-type MockAdapter struct {
+type AdapterMock struct {
 	FetchCalled  bool
 	FetchInput   shared.SearchRequest
 	FetchResult  []byte
@@ -17,11 +17,11 @@ type MockAdapter struct {
 	MapperResult []shared.MeasurementResult
 }
 
-func (m *MockAdapter) SourceId() string {
+func (m *AdapterMock) SourceId() string {
 	return "test.test"
 }
 
-func (m *MockAdapter) Fetch(sr shared.SearchRequest) []byte {
+func (m *AdapterMock) Fetch(sr shared.SearchRequest) []byte {
 	m.FetchCalled = true
 	m.FetchInput = sr
 
@@ -32,7 +32,7 @@ func (m *MockAdapter) Fetch(sr shared.SearchRequest) []byte {
 	return m.FetchResult
 }
 
-func (m *MockAdapter) MapToMeasurements(rawApiRes []byte) []shared.MeasurementResult {
+func (m *AdapterMock) MapToMeasurements(rawApiRes []byte) []shared.MeasurementResult {
 	m.MapperCalled = true
 	m.MapperInput = rawApiRes
 	if m.MapperResult == nil {
@@ -42,18 +42,32 @@ func (m *MockAdapter) MapToMeasurements(rawApiRes []byte) []shared.MeasurementRe
 	return m.MapperResult
 }
 
+type couchDbClientMock struct {
+	SaveRawApiResCalled bool
+	SaveRawApiResInput  []byte
+}
+
+func (c *couchDbClientMock) saveRawApiRes(sourceId string, rawApiRes []byte) {
+	c.SaveRawApiResCalled = true
+	c.SaveRawApiResInput = rawApiRes
+}
+
 func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
-	mockAdapter := &MockAdapter{}
-	fetcher := Fetcher{weatherProviderAdapter: mockAdapter}
+	adapterMock := &AdapterMock{}
+	couchDbClientMock := &couchDbClientMock{}
+	fetcher := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
 	expectedResults := shared.MakeEmptyResults()
 	searchRequest := shared.SearchRequest{Loc: shared.Location{Name: "thisisatest"}}
 
 	results := fetcher.GetMeasurement(searchRequest)
 
-	if !mockAdapter.FetchCalled {
+	if !adapterMock.FetchCalled {
 		t.Errorf("Expected Fetch to be called on the adapter, but it was not.")
 	}
-	if searchRequest != mockAdapter.FetchInput {
+	if searchRequest != adapterMock.FetchInput {
 		t.Errorf("Expected Fetch to be called with searchRequest, but it was not")
 	}
 	if results == nil || len(results) != len(expectedResults) {
@@ -62,14 +76,18 @@ func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
 }
 
 func TestGetMeasurement_callsMapperWithTheRemoteApiResponseBody(t *testing.T) {
-	mockAdapter := &MockAdapter{}
-	fetcher := Fetcher{weatherProviderAdapter: mockAdapter}
+	adapterMock := &AdapterMock{}
+	couchDbClientMock := &couchDbClientMock{}
+	fetcher := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
 	searchRequest := shared.SearchRequest{}
 	expectedResults := shared.MakeEmptyResults()
-	mockAdapter.MapperResult = expectedResults
+	adapterMock.MapperResult = expectedResults
 	results := fetcher.GetMeasurement(searchRequest)
 
-	if !mockAdapter.MapperCalled {
+	if !adapterMock.MapperCalled {
 		t.Errorf("Expected MapToMeasurements to be called on the adapter, but it was not")
 	}
 
@@ -79,18 +97,37 @@ func TestGetMeasurement_callsMapperWithTheRemoteApiResponseBody(t *testing.T) {
 }
 
 func TestGetMeasurement_savesRawApiResponsesToDb(t *testing.T) {
+	adapterMock := &AdapterMock{}
+	couchDbClientMock := &couchDbClientMock{}
+	fetcher := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
+
+	searchRequest := shared.SearchRequest{}
+	expectedResults := shared.MakeEmptyResults()
+	adapterMock.MapperResult = expectedResults
+	fetcher.GetMeasurement(searchRequest)
+
+	if !couchDbClientMock.SaveRawApiResCalled {
+		t.Errorf("Expected saveRawApiRes to be called on the dbClient, but it was not")
+	}
 }
 
 func TestGetMeasurement_returnsACollectionOfMeasurements(t *testing.T) {
-	mockAdapter := &MockAdapter{}
-	fetcher := Fetcher{weatherProviderAdapter: mockAdapter}
+	adapterMock := &AdapterMock{}
+	couchDbClientMock := &couchDbClientMock{}
+	fetcher := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
 	expectedResults := shared.MakeEmptyResults()
 	expectedResults = append(expectedResults, shared.MeasurementResult{
 		Source: "test",
 		Type:   "test",
 	})
 
-	mockAdapter.MapperResult = expectedResults
+	adapterMock.MapperResult = expectedResults
 
 	searchRequest := shared.SearchRequest{Loc: shared.Location{Name: "thisisatest"}}
 

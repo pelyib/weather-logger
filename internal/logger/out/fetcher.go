@@ -6,15 +6,19 @@ import (
 	"github.com/pelyib/weather-logger/internal/shared"
 )
 
-type Adapter interface {
+type WeatherProviderAdapter interface {
 	SourceId() string
 	Fetch(sr shared.SearchRequest) []byte
 	MapToMeasurements(rawApiRes []byte) []shared.MeasurementResult
 }
 
+type DbClient interface {
+	saveRawApiRes(sourceId string, rawApiRes []byte)
+}
+
 type Fetcher struct {
-	weatherProviderAdapter Adapter
-	dbClient               client
+	weatherProviderAdapter WeatherProviderAdapter
+	dbClient               DbClient
 }
 
 type dbRecord struct {
