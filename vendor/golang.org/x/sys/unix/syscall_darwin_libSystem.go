@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build darwin && go1.12
 // +build darwin,go1.12
 
 package unix
@@ -27,6 +28,7 @@ func syscall_syscallPtr(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno)
 
 // Find the entry point for f. See comments in runtime/proc.go for the
 // function of the same name.
+//
 //go:nosplit
 func funcPC(f func()) uintptr {
 	return **(**uintptr)(unsafe.Pointer(&f))
