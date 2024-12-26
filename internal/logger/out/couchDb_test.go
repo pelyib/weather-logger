@@ -3,7 +3,6 @@ package out
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -146,9 +145,6 @@ func TestSaveRawApiRes_callsDbEndpoint(t *testing.T) {
 		if !strings.HasPrefix(authHeader, "Basic") {
 			t.Fatalf("Expected auth header is Basic, got %s", authHeader)
 		}
-
-		fmt.Println(bodyAsString)
-		fmt.Println(r.URL.Path)
 
 		w.WriteHeader(200)
 		w.Write([]byte(`desired response here`))
