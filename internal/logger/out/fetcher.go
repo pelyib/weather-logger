@@ -10,7 +10,7 @@ import (
 type WeatherProviderAdapter interface {
 	SourceId() string
 	Fetch(sr shared.SearchRequest) ([]byte, error)
-	MapToMeasurements(rawApiRes []byte, loc shared.Location) []shared.MeasurementResult
+	MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error)
 }
 
 type DbClient interface {
@@ -39,5 +39,8 @@ func (f Fetcher) GetMeasurement(searchRequest shared.SearchRequest) []shared.Mea
 
 	f.dbClient.saveRawApiRes(f.weatherProviderAdapter.SourceId(), rawApiRes)
 
-	return f.weatherProviderAdapter.MapToMeasurements(rawApiRes, searchRequest.Loc)
+	// TODO: handle errors here [pelyib]
+	measurements, _ := f.weatherProviderAdapter.MapToMeasurements(rawApiRes, searchRequest.Loc)
+
+	return measurements
 }

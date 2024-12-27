@@ -14,7 +14,7 @@ type now func() time.Time
 
 type client struct {
 	config config
-	clock  now
+	now    now
 }
 
 type config struct {
@@ -57,7 +57,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 
 	couchdbReqBody := dbSchema{
 		Obj: record{
-			CalledAt: c.clock().Format(time.RFC3339),
+			CalledAt: c.now().Format(time.RFC3339),
 			SourceId: sourceId,
 			Raw:      result,
 		},
@@ -65,7 +65,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 
 	couchdbSerializedRecord, _ := json.Marshal(couchdbReqBody)
 
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(c.now().UnixNano())
 	addToCouchDBReq, err := http.NewRequest(
 		"PUT",
 		fmt.Sprintf("%s/%s/%d", c.config.host, selectedDb.name, rand.Intn(10000)),
@@ -93,7 +93,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 
 func MakeNewClient(conf config) client {
 	return client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			return time.Now()
 		},
 		config: conf,

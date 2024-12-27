@@ -13,7 +13,7 @@ import (
 
 func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
 	c := client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
@@ -38,7 +38,7 @@ func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
 
 func TestSaveRawApiRes_returnsError_whenRawApiResIsIvalidJson(t *testing.T) {
 	c := client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
@@ -69,7 +69,7 @@ func TestSaveRawApiRes_returnsError_whenRawApiResIsIvalidJson(t *testing.T) {
 
 func TestSaveRawApiRes_returnsError_whenDbNotReachable(t *testing.T) {
 	c := client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
@@ -100,7 +100,7 @@ func TestSaveRawApiRes_returnsError_whenDbCallIsUnsuccesful(t *testing.T) {
 	defer ts.Close()
 
 	c := client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
@@ -151,7 +151,7 @@ func TestSaveRawApiRes_callsDbEndpoint(t *testing.T) {
 	}))
 	defer ts.Close()
 	c := client{
-		clock: func() time.Time {
+		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},

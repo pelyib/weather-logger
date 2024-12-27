@@ -37,14 +37,14 @@ func (m *AdapterMock) Fetch(sr shared.SearchRequest) ([]byte, error) {
 	return m.FetchResult, nil
 }
 
-func (m *AdapterMock) MapToMeasurements(rawApiRes []byte, loc shared.Location) []shared.MeasurementResult {
+func (m *AdapterMock) MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	m.MapperCalled = true
 	m.MapperInput = rawApiRes
 	if m.MapperResult == nil {
-		return shared.MakeEmptyResults()
+		return shared.MakeEmptyResults(), nil
 	}
 
-	return m.MapperResult
+	return m.MapperResult, nil
 }
 
 type couchDbClientMock struct {

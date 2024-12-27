@@ -1,0 +1,170 @@
+{
+  "Headline": {
+    "EffectiveDate": "2024-12-28T07:00:00+01:00",
+    "EffectiveEpochDate": 1735365600,
+    "Severity": 7,
+    "Text": "Noticeably cooler weather on the way Saturday",
+    "Category": "cooler",
+    "EndDate": "2024-12-28T19:00:00+01:00",
+    "EndEpochDate": 1735408800,
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?unit=c&lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?unit=c&lang=en-us"
+  },
+  "DailyForecasts": [
+    {
+      "Date": "2024-12-27T07:00:00+01:00",
+      "EpochDate": 1735279200,
+      "Temperature": {
+        "Minimum": {
+          "Value": 1.4,
+          "Unit": "C",
+          "UnitType": 17
+        },
+        "Maximum": {
+          "Value": 12,
+          "Unit": "C",
+          "UnitType": 17
+        }
+      },
+      "Day": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Night": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Sources": [
+        "AccuWeather"
+      ],
+      "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=1&unit=c&lang=en-us",
+      "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=1&unit=c&lang=en-us"
+    },
+    {
+      "Date": "2024-12-28T07:00:00+01:00",
+      "EpochDate": 1735365600,
+      "Temperature": {
+        "Minimum": {
+          "Value": 2.6,
+          "Unit": "C",
+          "UnitType": 17
+        },
+        "Maximum": {
+          "Value": 4.5,
+          "Unit": "C",
+          "UnitType": 17
+        }
+      },
+      "Day": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Night": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Sources": [
+        "AccuWeather"
+      ],
+      "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=2&unit=c&lang=en-us",
+      "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=2&unit=c&lang=en-us"
+    },
+    {
+      "Date": "2024-12-29T07:00:00+01:00",
+      "EpochDate": 1735452000,
+      "Temperature": {
+        "Minimum": {
+          "Value": 6.6,
+          "Unit": "C",
+          "UnitType": 17
+        },
+        "Maximum": {
+          "Value": 8.4,
+          "Unit": "C",
+          "UnitType": 17
+        }
+      },
+      "Day": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Night": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Sources": [
+        "AccuWeather"
+      ],
+      "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=3&unit=c&lang=en-us",
+      "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=3&unit=c&lang=en-us"
+    },
+    {
+      "Date": "2024-12-30T07:00:00+01:00",
+      "EpochDate": 1735538400,
+      "Temperature": {
+        "Minimum": {
+          "Value": 6.1,
+          "Unit": "C",
+          "UnitType": 17
+        },
+        "Maximum": {
+          "Value": 9.1,
+          "Unit": "C",
+          "UnitType": 17
+        }
+      },
+      "Day": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Night": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Sources": [
+        "AccuWeather"
+      ],
+      "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=4&unit=c&lang=en-us",
+      "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=4&unit=c&lang=en-us"
+    },
+    {
+      "Date": "2024-12-31T07:00:00+01:00",
+      "EpochDate": 1735624800,
+      "Temperature": {
+        "Minimum": {
+          "Value": 6.4,
+          "Unit": "C",
+          "UnitType": 17
+        },
+        "Maximum": {
+          "Value": 8.5,
+          "Unit": "C",
+          "UnitType": 17
+        }
+      },
+      "Day": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Night": {
+        "Icon": 8,
+        "IconPhrase": "Dreary",
+        "HasPrecipitation": false
+      },
+      "Sources": [
+        "AccuWeather"
+      ],
+      "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=5&unit=c&lang=en-us",
+      "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/daily-weather-forecast/249758?day=5&unit=c&lang=en-us"
+    }
+  ]
+}

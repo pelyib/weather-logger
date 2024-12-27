@@ -48,6 +48,7 @@ type LoggerCnf struct {
 			AppId string
 		} `yaml:"openWeather"`
 		AccuWeather struct {
+			Host  string
 			AppId string
 		} `yaml:"accuweather"`
 	} `yaml:"forecast-providers"`
