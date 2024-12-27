@@ -1,0 +1,554 @@
+[
+  {
+    "LocalObservationDateTime": "2024-12-27T19:56:00+01:00",
+    "EpochTime": 1735325760,
+    "WeatherText": "Mostly clear",
+    "WeatherIcon": 34,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.2,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 36,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T19:01:00+01:00",
+    "EpochTime": 1735322460,
+    "WeatherText": "Mostly clear",
+    "WeatherIcon": 34,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.2,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 36,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T18:01:00+01:00",
+    "EpochTime": 1735318860,
+    "WeatherText": "Clear",
+    "WeatherIcon": 33,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T17:01:00+01:00",
+    "EpochTime": 1735315260,
+    "WeatherText": "Partly cloudy",
+    "WeatherIcon": 35,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T16:01:00+01:00",
+    "EpochTime": 1735311660,
+    "WeatherText": "Mostly cloudy",
+    "WeatherIcon": 6,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T15:01:00+01:00",
+    "EpochTime": 1735308060,
+    "WeatherText": "Mostly cloudy",
+    "WeatherIcon": 6,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T14:01:00+01:00",
+    "EpochTime": 1735304460,
+    "WeatherText": "Mostly cloudy",
+    "WeatherIcon": 6,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T13:01:00+01:00",
+    "EpochTime": 1735300860,
+    "WeatherText": "Cloudy",
+    "WeatherIcon": 7,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T12:01:00+01:00",
+    "EpochTime": 1735297260,
+    "WeatherText": "Sunny",
+    "WeatherIcon": 1,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T11:01:00+01:00",
+    "EpochTime": 1735293660,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T10:01:00+01:00",
+    "EpochTime": 1735290060,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T09:01:00+01:00",
+    "EpochTime": 1735286460,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": true,
+    "Temperature": {
+      "Metric": {
+        "Value": 2.8,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 37,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T08:01:00+01:00",
+    "EpochTime": 1735282860,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T07:01:00+01:00",
+    "EpochTime": 1735279260,
+    "WeatherText": "Partly cloudy",
+    "WeatherIcon": 35,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T05:57:00+01:00",
+    "EpochTime": 1735275420,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T05:01:00+01:00",
+    "EpochTime": 1735272060,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T04:01:00+01:00",
+    "EpochTime": 1735268460,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T03:01:00+01:00",
+    "EpochTime": 1735264860,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T02:01:00+01:00",
+    "EpochTime": 1735261260,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 3.9,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 39,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T01:01:00+01:00",
+    "EpochTime": 1735257660,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 5,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 41,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-27T00:01:00+01:00",
+    "EpochTime": 1735254060,
+    "WeatherText": "Cloudy",
+    "WeatherIcon": 7,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 5,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 41,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-26T23:01:00+01:00",
+    "EpochTime": 1735250460,
+    "WeatherText": "Partly cloudy",
+    "WeatherIcon": 35,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 5,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 41,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-26T21:56:00+01:00",
+    "EpochTime": 1735246560,
+    "WeatherText": "Fog",
+    "WeatherIcon": 11,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 6.1,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 43,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  },
+  {
+    "LocalObservationDateTime": "2024-12-26T21:01:00+01:00",
+    "EpochTime": 1735243260,
+    "WeatherText": "Partly cloudy",
+    "WeatherIcon": 35,
+    "HasPrecipitation": false,
+    "PrecipitationType": null,
+    "IsDayTime": false,
+    "Temperature": {
+      "Metric": {
+        "Value": 6.1,
+        "Unit": "C",
+        "UnitType": 17
+      },
+      "Imperial": {
+        "Value": 43,
+        "Unit": "F",
+        "UnitType": 18
+      }
+    },
+    "MobileLink": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us",
+    "Link": "http://www.accuweather.com/en/nl/amsterdam/249758/current-weather/249758?lang=en-us"
+  }
+]

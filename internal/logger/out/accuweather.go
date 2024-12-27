@@ -26,6 +26,7 @@ type awForecast struct {
 type awHistorical struct {
 	cnf *shared.LoggerCnf
 	l   shared.Logger
+	now now
 }
 
 func (awh awHistorical) SourceId() string {
@@ -40,7 +41,8 @@ func (awh awHistorical) Fetch(sr shared.SearchRequest) ([]byte, error) {
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf(
-			"http://dataservice.accuweather.com/currentconditions/v1/%s/historical/24",
+			"%s/currentconditions/v1/%s/historical/24",
+			awh.cnf.ForecastProviders.AccuWeather.Host,
 			sr.Loc.Providers.AccuWeather.Locationkey,
 		),
 		nil,
@@ -58,6 +60,10 @@ func (awh awHistorical) Fetch(sr shared.SearchRequest) ([]byte, error) {
 		return nil, errors.New(fmt.Sprintf("Fetching Forecasts from Accuweather failed, reason: %s", err.Error()))
 	}
 
+	if res.StatusCode >= 400 {
+		return nil, errors.New(fmt.Sprintf("Fetching Historical from Accuweather failed, HTTP status code: %s", res.Status))
+	}
+
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 
@@ -68,7 +74,7 @@ func (awh awHistorical) Fetch(sr shared.SearchRequest) ([]byte, error) {
 	return body, nil
 }
 
-func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location) []shared.MeasurementResult {
+func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	var HistoricalDecodedResponseBody []struct {
 		LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
 		EpochTime                int64       `json:"EpochTime"`
@@ -93,10 +99,13 @@ func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location)
 		Link       string `json:"Link"`
 	}
 
-	json.Unmarshal(rawApiRes, &HistoricalDecodedResponseBody)
+	err := json.Unmarshal(rawApiRes, &HistoricalDecodedResponseBody)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Could not unmarshal rawApiRes, reason: %s", err.Error()))
+	}
 
 	var min, max float32 = 60.0, -55.0
-	today, _ := time.Parse("2006/01/02", time.Now().Format("2006/01/02"))
+	today, _ := time.Parse("2006/01/02", awh.now().Format("2006/01/02"))
 	todayUnixMilli := today.Unix()
 
 	for _, i := range HistoricalDecodedResponseBody {
@@ -122,12 +131,12 @@ func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location)
 			Min:        min,
 			Max:        max,
 			At:         today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
-			RecordedAt: time.Now().Format(time.RFC3339),
+			RecordedAt: awh.now().Format(time.RFC3339),
 			Loc:        loc,
 		},
 	)
 
-	return mrs
+	return mrs, nil
 }
 
 func (awf awForecast) SourceId() string {
@@ -189,7 +198,7 @@ func (awf awForecast) MapToMeasurements(rawApiRes []byte, loc shared.Location) (
 
 	err := json.Unmarshal(rawApiRes, &decBody)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Could not unmarshal response body, reason: %s", err.Error()))
+		return nil, errors.New(fmt.Sprintf("Could not unmarshal rawApiRes, reason: %s", err.Error()))
 	}
 
 	for _, df := range decBody.DailyForecasts {

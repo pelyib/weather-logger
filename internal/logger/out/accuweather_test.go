@@ -10,6 +10,10 @@ import (
 	"github.com/pelyib/weather-logger/internal/shared"
 )
 
+// =====================
+// ===== FORECASTS =====
+// =====================
+
 func TestForecast_sourceId_returnsIt(t *testing.T) {
 	awf := awForecast{}
 	if awf.SourceId() != "accuweather.forecast" {
@@ -38,7 +42,7 @@ func TestForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 				AppId string
 			}{
 				Host:  ts.URL,
-				AppId: "123456",
+				AppId: "app-id",
 			}},
 	}}
 
@@ -52,7 +56,7 @@ func TestForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 				AccuWeather: struct {
 					Locationkey string `yaml:"locationKey" json:"locationKey"`
 				}{
-					Locationkey: "123456",
+					Locationkey: "location-key",
 				},
 			},
 		},
@@ -222,5 +226,175 @@ func TestHistorical_sourceId_returnsIt(t *testing.T) {
 	awh := awHistorical{}
 	if awh.SourceId() != "accuweather.historical" {
 		t.Errorf("Expected accuweather.historical, got %s", awh.SourceId())
+	}
+}
+
+func TestHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+	}))
+	defer ts.Close()
+	awh := awHistorical{cnf: &shared.LoggerCnf{
+		ForecastProviders: struct {
+			OpenWeather struct {
+				AppId string
+			} `yaml:"openWeather"`
+			AccuWeather struct {
+				Host  string
+				AppId string
+			} `yaml:"accuweather"`
+		}{
+			AccuWeather: struct {
+				Host  string
+				AppId string
+			}{
+				Host:  ts.URL,
+				AppId: "app-id",
+			}},
+	}}
+
+	result, err := awh.Fetch(shared.SearchRequest{
+		Loc: shared.Location{
+			Providers: struct {
+				AccuWeather struct {
+					Locationkey string `yaml:"locationKey" json:"locationKey"`
+				} `yaml:"accuWeather" json:"accuWeather"`
+			}{
+				AccuWeather: struct {
+					Locationkey string `yaml:"locationKey" json:"locationKey"`
+				}{
+					Locationkey: "location-key",
+				},
+			},
+		},
+	})
+
+	if err == nil {
+		t.Error("Expected error, got nothing")
+	}
+
+	if err.Error() != "Fetching Historical from Accuweather failed, HTTP status code: 500 Internal Server Error" {
+		t.Errorf("Expected error message mismatch, got %s", err.Error())
+	}
+
+	if result != nil {
+		t.Errorf("Expected nil as result, got %v", result)
+	}
+}
+
+func TestHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		appId := r.URL.Query().Get("apikey")
+		if appId != "app-id" {
+			w.WriteHeader(401)
+			t.Errorf("Expected apikey mismatch, got %s", appId)
+
+			return
+		}
+
+		path := r.URL.Path
+		if path != "/currentconditions/v1/location-key/historical/24" {
+			w.WriteHeader(404)
+			t.Errorf("Expected path mismatch, got %s", path)
+
+			return
+		}
+
+		w.WriteHeader(200)
+		w.Write([]byte("API raw response"))
+	}))
+	defer ts.Close()
+	awh := awHistorical{cnf: &shared.LoggerCnf{
+		ForecastProviders: struct {
+			OpenWeather struct {
+				AppId string
+			} `yaml:"openWeather"`
+			AccuWeather struct {
+				Host  string
+				AppId string
+			} `yaml:"accuweather"`
+		}{
+			AccuWeather: struct {
+				Host  string
+				AppId string
+			}{
+				Host:  ts.URL,
+				AppId: "app-id",
+			}},
+	}}
+
+	result, err := awh.Fetch(shared.SearchRequest{
+		Loc: shared.Location{
+			Providers: struct {
+				AccuWeather struct {
+					Locationkey string `yaml:"locationKey" json:"locationKey"`
+				} `yaml:"accuWeather" json:"accuWeather"`
+			}{
+				AccuWeather: struct {
+					Locationkey string `yaml:"locationKey" json:"locationKey"`
+				}{
+					Locationkey: "location-key",
+				},
+			},
+		},
+	})
+
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err.Error())
+	}
+
+	if result == nil {
+		t.Errorf("Expected []byte, got %v", result)
+	}
+
+	if string(result) != "API raw response" {
+		t.Errorf("Expected response mismatch, got %s", string(result))
+	}
+}
+
+func TestHistorical_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+	awh := awHistorical{
+		now: func() time.Time {
+			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
+		},
+	}
+
+	data, err := os.ReadFile("./../../../testdata/out/accuweather_historical.json")
+
+	if err != nil {
+		t.Errorf("Tried to load testdata, but got error: %s", err.Error())
+	}
+
+	result, err := awh.MapToMeasurements(data, shared.Location{})
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err.Error())
+	}
+
+	if len(result) != 1 {
+		t.Errorf("Expected exactly 1 item, got %v", len(result))
+	}
+
+	if result[0].Source != "AccuWeather" {
+		t.Errorf("Expected source mismatch, got %s", result[0].Source)
+	}
+
+	if result[0].Type != shared.MeasurementResult_Type_Historical {
+		t.Errorf("Expected type mismatch, got %s", result[0].Type)
+	}
+
+	if result[0].At != "2024-12-26T00:00:00Z" {
+		t.Errorf("Expected at mismatch, got %s", result[0].At)
+	}
+
+	if result[0].RecordedAt != "2024-12-27T10:11:12Z" {
+		t.Errorf("Expected recordedAt mismatch, got %s", result[0].RecordedAt)
+	}
+
+	if result[0].Min != 2.2 {
+		t.Errorf("Expected min mismatch, got %f", result[0].Min)
+	}
+
+	if result[0].Max != 5 {
+		t.Errorf("Expected max mismatch, got %f", result[0].Max)
 	}
 }
