@@ -152,6 +152,10 @@ func (owh owHistorical) GetMeasurement(sr shared.SearchRequest) []shared.Measure
 	return mrs
 }
 
+func (owf owForecast) SourceId() string {
+    return "openweather.forecast"
+}
+
 func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
 	client := http.Client{}
 	q := url.Values{}
