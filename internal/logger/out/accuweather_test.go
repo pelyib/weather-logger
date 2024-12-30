@@ -14,14 +14,14 @@ import (
 // ===== FORECASTS =====
 // =====================
 
-func TestForecast_sourceId_returnsIt(t *testing.T) {
+func TestAccuweatherForecast_SourceId_returnsIt(t *testing.T) {
 	awf := awForecast{}
 	if awf.SourceId() != "accuweather.forecast" {
 		t.Errorf("Expected accuweather.forecast, got %s", awf.SourceId())
 	}
 }
 
-func TestForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
+func TestAccuweatherForecast_Fetch_returnsError_whenCallFailed(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 	}))
@@ -75,7 +75,7 @@ func TestForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 	}
 }
 
-func TestForecast_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
+func TestAccuweatherForecast_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appId := r.URL.Query().Get("apikey")
 		if appId != "app-id" {
@@ -153,7 +153,7 @@ func TestForecast_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	}
 }
 
-func TestForecast_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+func TestAccuweatherForecast_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
 	awf := awForecast{
 		clock: func() time.Time {
 			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
@@ -222,14 +222,14 @@ func TestForecast_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.
 // ===== HISTORYCAL =====
 // ======================
 
-func TestHistorical_sourceId_returnsIt(t *testing.T) {
+func TesrAccuweatherHistorical_SourceId_returnsIt(t *testing.T) {
 	awh := awHistorical{}
 	if awh.SourceId() != "accuweather.historical" {
 		t.Errorf("Expected accuweather.historical, got %s", awh.SourceId())
 	}
 }
 
-func TestHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
+func TestAccuweatherHistorical_Fetch_returnsError_whenCallFailed(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}))
@@ -282,7 +282,7 @@ func TestHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
 	}
 }
 
-func TestHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
+func TestAccuweatherHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appId := r.URL.Query().Get("apikey")
 		if appId != "app-id" {
@@ -352,7 +352,7 @@ func TestHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	}
 }
 
-func TestHistorical_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+func TestAccuweatherHistorical_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
 	awh := awHistorical{
 		now: func() time.Time {
 			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
