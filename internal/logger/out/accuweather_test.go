@@ -30,6 +30,7 @@ func TestAccuweatherForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 	awf := awForecast{cnf: &shared.LoggerCnf{
 		ForecastProviders: struct {
 			OpenWeather struct {
+				Host  string
 				AppId string
 			} `yaml:"openWeather"`
 			AccuWeather struct {
@@ -108,6 +109,7 @@ func TestAccuweatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testin
 	awf := awForecast{cnf: &shared.LoggerCnf{
 		ForecastProviders: struct {
 			OpenWeather struct {
+				Host  string
 				AppId string
 			} `yaml:"openWeather"`
 			AccuWeather struct {
@@ -237,6 +239,7 @@ func TestAccuweatherHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
 	awh := awHistorical{cnf: &shared.LoggerCnf{
 		ForecastProviders: struct {
 			OpenWeather struct {
+				Host  string
 				AppId string
 			} `yaml:"openWeather"`
 			AccuWeather struct {
@@ -307,6 +310,7 @@ func TestAccuweatherHistorical_fetch_returnsRawResponse_whenCallSucceeds(t *test
 	awh := awHistorical{cnf: &shared.LoggerCnf{
 		ForecastProviders: struct {
 			OpenWeather struct {
+				Host  string
 				AppId string
 			} `yaml:"openWeather"`
 			AccuWeather struct {

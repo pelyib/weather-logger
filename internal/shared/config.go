@@ -45,6 +45,7 @@ type LoggerCnf struct {
 	Locations         []Location `yaml:"locations"`
 	ForecastProviders struct {
 		OpenWeather struct {
+			Host  string
 			AppId string
 		} `yaml:"openWeather"`
 		AccuWeather struct {
