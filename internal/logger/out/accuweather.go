@@ -33,7 +33,7 @@ func (awh awHistorical) sourceId() string {
 	return "accuweather.historical"
 }
 
-func (awh awHistorical) Fetch(sr shared.SearchRequest) ([]byte, error) {
+func (awh awHistorical) fetch(sr shared.SearchRequest) ([]byte, error) {
 	client := http.Client{}
 	q := url.Values{}
 	q.Add("apikey", awh.cnf.ForecastProviders.AccuWeather.AppId)
@@ -143,7 +143,7 @@ func (awf awForecast) sourceId() string {
 	return "accuweather.forecast"
 }
 
-func (awf awForecast) Fetch(sr shared.SearchRequest) ([]byte, error) {
+func (awf awForecast) fetch(sr shared.SearchRequest) ([]byte, error) {
 	client := http.Client{}
 	q := url.Values{}
 	q.Add("apikey", awf.cnf.ForecastProviders.AccuWeather.AppId)

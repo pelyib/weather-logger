@@ -22,7 +22,7 @@ func (m *AdapterMock) sourceId() string {
 	return "test.test"
 }
 
-func (m *AdapterMock) Fetch(sr shared.SearchRequest) ([]byte, error) {
+func (m *AdapterMock) fetch(sr shared.SearchRequest) ([]byte, error) {
 	m.FetchCalled = true
 	m.FetchInput = sr
 

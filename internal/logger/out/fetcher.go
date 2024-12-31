@@ -9,7 +9,7 @@ import (
 
 type WeatherProviderAdapter interface {
 	sourceId() string
-	Fetch(sr shared.SearchRequest) ([]byte, error)
+	fetch(sr shared.SearchRequest) ([]byte, error)
 	MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error)
 }
 
@@ -30,7 +30,7 @@ type dbRecord struct {
 }
 
 func (f Fetcher) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
-	rawApiRes, err := f.weatherProviderAdapter.Fetch(searchRequest)
+	rawApiRes, err := f.weatherProviderAdapter.fetch(searchRequest)
 
 	if err != nil {
 		f.logger.Error(fmt.Sprintf("Fetching %s failed, reason: %s", f.weatherProviderAdapter.sourceId(), err.Error()))

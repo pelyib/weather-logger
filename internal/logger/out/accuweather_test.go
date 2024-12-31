@@ -14,14 +14,14 @@ import (
 // ===== FORECASTS =====
 // =====================
 
-func TestAccuweatherForecast_SourceId_returnsIt(t *testing.T) {
+func TestAccuweatherForecast_sourceId_returnsIt(t *testing.T) {
 	awf := awForecast{}
 	if awf.sourceId() != "accuweather.forecast" {
 		t.Errorf("Expected accuweather.forecast, got %s", awf.sourceId())
 	}
 }
 
-func TestAccuweatherForecast_Fetch_returnsError_whenCallFailed(t *testing.T) {
+func TestAccuweatherForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 	}))
@@ -46,7 +46,7 @@ func TestAccuweatherForecast_Fetch_returnsError_whenCallFailed(t *testing.T) {
 			}},
 	}}
 
-	result, err := awf.Fetch(shared.SearchRequest{
+	result, err := awf.fetch(shared.SearchRequest{
 		Loc: shared.Location{
 			Providers: struct {
 				AccuWeather struct {
@@ -75,7 +75,7 @@ func TestAccuweatherForecast_Fetch_returnsError_whenCallFailed(t *testing.T) {
 	}
 }
 
-func TestAccuweatherForecast_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
+func TestAccuweatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appId := r.URL.Query().Get("apikey")
 		if appId != "app-id" {
@@ -124,7 +124,7 @@ func TestAccuweatherForecast_Fetch_returnsRawResponse_whenCallSucceeds(t *testin
 			}},
 	}}
 
-	result, err := awf.Fetch(shared.SearchRequest{
+	result, err := awf.fetch(shared.SearchRequest{
 		Loc: shared.Location{
 			Providers: struct {
 				AccuWeather struct {
@@ -222,14 +222,14 @@ func TestAccuweatherForecast_MapToMeasurement_returnsACollection_whenRawIsValid(
 // ===== HISTORYCAL =====
 // ======================
 
-func TesrAccuweatherHistorical_SourceId_returnsIt(t *testing.T) {
+func TesrAccuweatherHistorical_sourceId_returnsIt(t *testing.T) {
 	awh := awHistorical{}
 	if awh.sourceId() != "accuweather.historical" {
 		t.Errorf("Expected accuweather.historical, got %s", awh.sourceId())
 	}
 }
 
-func TestAccuweatherHistorical_Fetch_returnsError_whenCallFailed(t *testing.T) {
+func TestAccuweatherHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}))
@@ -253,7 +253,7 @@ func TestAccuweatherHistorical_Fetch_returnsError_whenCallFailed(t *testing.T) {
 			}},
 	}}
 
-	result, err := awh.Fetch(shared.SearchRequest{
+	result, err := awh.fetch(shared.SearchRequest{
 		Loc: shared.Location{
 			Providers: struct {
 				AccuWeather struct {
@@ -282,7 +282,7 @@ func TestAccuweatherHistorical_Fetch_returnsError_whenCallFailed(t *testing.T) {
 	}
 }
 
-func TestAccuweatherHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
+func TestAccuweatherHistorical_fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		appId := r.URL.Query().Get("apikey")
 		if appId != "app-id" {
@@ -323,7 +323,7 @@ func TestAccuweatherHistorical_Fetch_returnsRawResponse_whenCallSucceeds(t *test
 			}},
 	}}
 
-	result, err := awh.Fetch(shared.SearchRequest{
+	result, err := awh.fetch(shared.SearchRequest{
 		Loc: shared.Location{
 			Providers: struct {
 				AccuWeather struct {
