@@ -37,7 +37,7 @@ func (m *AdapterMock) fetch(sr shared.SearchRequest) ([]byte, error) {
 	return m.FetchResult, nil
 }
 
-func (m *AdapterMock) MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
+func (m *AdapterMock) mapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	m.MapperCalled = true
 	m.MapperInput = rawApiRes
 	if m.MapperResult == nil {

@@ -153,7 +153,7 @@ func TestAccuweatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testin
 	}
 }
 
-func TestAccuweatherForecast_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+func TestAccuweatherForecast_mapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
 	awf := awForecast{
 		clock: func() time.Time {
 			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
@@ -166,7 +166,7 @@ func TestAccuweatherForecast_MapToMeasurement_returnsACollection_whenRawIsValid(
 		t.Errorf("Tried to load testdata, but got error: %s", err.Error())
 	}
 
-	result, err := awf.MapToMeasurements(data, shared.Location{})
+	result, err := awf.mapToMeasurements(data, shared.Location{})
 
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err.Error())
@@ -352,7 +352,7 @@ func TestAccuweatherHistorical_fetch_returnsRawResponse_whenCallSucceeds(t *test
 	}
 }
 
-func TestAccuweatherHistorical_MapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+func TestAccuweatherHistorical_mapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
 	awh := awHistorical{
 		now: func() time.Time {
 			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
@@ -365,7 +365,7 @@ func TestAccuweatherHistorical_MapToMeasurement_returnsACollection_whenRawIsVali
 		t.Errorf("Tried to load testdata, but got error: %s", err.Error())
 	}
 
-	result, err := awh.MapToMeasurements(data, shared.Location{})
+	result, err := awh.mapToMeasurements(data, shared.Location{})
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err.Error())
 	}

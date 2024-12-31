@@ -74,7 +74,7 @@ func (awh awHistorical) fetch(sr shared.SearchRequest) ([]byte, error) {
 	return body, nil
 }
 
-func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
+func (awh awHistorical) mapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	var HistoricalDecodedResponseBody []struct {
 		LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
 		EpochTime                int64       `json:"EpochTime"`
@@ -180,7 +180,7 @@ func (awf awForecast) fetch(sr shared.SearchRequest) ([]byte, error) {
 	return remoteApiResponse, nil
 }
 
-func (awf awForecast) MapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
+func (awf awForecast) mapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	mrs := shared.MakeEmptyResults()
 	var decBody struct {
 		DailyForecasts []struct {
