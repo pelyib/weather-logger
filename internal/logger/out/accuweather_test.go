@@ -16,8 +16,8 @@ import (
 
 func TestAccuweatherForecast_SourceId_returnsIt(t *testing.T) {
 	awf := awForecast{}
-	if awf.SourceId() != "accuweather.forecast" {
-		t.Errorf("Expected accuweather.forecast, got %s", awf.SourceId())
+	if awf.sourceId() != "accuweather.forecast" {
+		t.Errorf("Expected accuweather.forecast, got %s", awf.sourceId())
 	}
 }
 
@@ -224,8 +224,8 @@ func TestAccuweatherForecast_MapToMeasurement_returnsACollection_whenRawIsValid(
 
 func TesrAccuweatherHistorical_SourceId_returnsIt(t *testing.T) {
 	awh := awHistorical{}
-	if awh.SourceId() != "accuweather.historical" {
-		t.Errorf("Expected accuweather.historical, got %s", awh.SourceId())
+	if awh.sourceId() != "accuweather.historical" {
+		t.Errorf("Expected accuweather.historical, got %s", awh.sourceId())
 	}
 }
 

@@ -29,7 +29,7 @@ type awHistorical struct {
 	now now
 }
 
-func (awh awHistorical) SourceId() string {
+func (awh awHistorical) sourceId() string {
 	return "accuweather.historical"
 }
 
@@ -139,7 +139,7 @@ func (awh awHistorical) MapToMeasurements(rawApiRes []byte, loc shared.Location)
 	return mrs, nil
 }
 
-func (awf awForecast) SourceId() string {
+func (awf awForecast) sourceId() string {
 	return "accuweather.forecast"
 }
 

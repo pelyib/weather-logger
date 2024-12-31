@@ -18,7 +18,7 @@ type AdapterMock struct {
 	MapperResult []shared.MeasurementResult
 }
 
-func (m *AdapterMock) SourceId() string {
+func (m *AdapterMock) sourceId() string {
 	return "test.test"
 }
 
