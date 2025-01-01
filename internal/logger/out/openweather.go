@@ -162,14 +162,14 @@ func (owf owForecast) fetch(sr shared.SearchRequest) ([]byte, error) {
 	q := url.Values{}
 	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Langitude))
 	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
-	// q.Add("exclude", "current,minutely,hourly,alerts")
+	q.Add("exclude", "current,minutely,hourly,alerts")
 	q.Add("appid", owf.cnf.ForecastProviders.OpenWeather.AppId)
-	// q.Add("units", "metric")
+	q.Add("units", "metric")
 
 	fmt.Println(owf.cnf.ForecastProviders.OpenWeather.Host)
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%s/data/2.5/forecast", owf.cnf.ForecastProviders.OpenWeather.Host),
+		fmt.Sprintf("%s/data/3.0/onecall", owf.cnf.ForecastProviders.OpenWeather.Host),
 		nil,
 	)
 

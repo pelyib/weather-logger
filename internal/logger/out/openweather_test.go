@@ -1,7 +1,6 @@
 package out
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -55,9 +54,6 @@ func TestOpenWeatherForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 		},
 	})
 
-	fmt.Println(result)
-	fmt.Println(err)
-
 	if err == nil {
 		t.Error("Expected error, got nothing")
 	}
@@ -73,6 +69,14 @@ func TestOpenWeatherForecast_fetch_returnsError_whenCallFailed(t *testing.T) {
 
 func TestOpenWeatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if path != "/data/3.0/onecall" {
+			w.WriteHeader(404)
+			t.Errorf("Expected path mismatch, got %s", path)
+
+			return
+		}
+
 		appId := r.URL.Query().Get("appid")
 		if appId != "app-id" {
 			w.WriteHeader(401)
@@ -81,24 +85,36 @@ func TestOpenWeatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testin
 			return
 		}
 
-		path := r.URL.Path
-		if path != "/data/2.5/forecast" {
-			w.WriteHeader(404)
-			t.Errorf("Expected path mismatch, got %s", path)
-
-			return
-		}
-
 		lat, _ := strconv.ParseFloat(r.URL.Query().Get("lat"), 64)
 		if lat != 13.0 {
 			w.WriteHeader(404)
 			t.Errorf("Expected langitude mismatch, got %f", lat)
+
+			return
 		}
 
 		lon, _ := strconv.ParseFloat(r.URL.Query().Get("lon"), 64)
 		if lon != 42.0 {
 			w.WriteHeader(404)
 			t.Errorf("Expected longitude mismatch, got %f", lon)
+
+			return
+		}
+
+		units := r.URL.Query().Get("units")
+		if units != "metric" {
+			w.WriteHeader(404)
+			t.Errorf("Expected units mismatch, got %s", units)
+
+			return
+		}
+
+		exclude := r.URL.Query().Get("exclude")
+		if exclude != "current,minutely,hourly,alerts" {
+			w.WriteHeader(404)
+			t.Errorf("Expected exclude mismatch, got %s", exclude)
+
+			return
 		}
 
 		w.WriteHeader(200)

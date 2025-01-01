@@ -221,7 +221,7 @@ func TestAccuweatherForecast_mapToMeasurement_returnsACollection_whenRawIsValid(
 }
 
 // ======================
-// ===== HISTORYCAL =====
+// ===== HISTORICAL =====
 // ======================
 
 func TesrAccuweatherHistorical_sourceId_returnsIt(t *testing.T) {
