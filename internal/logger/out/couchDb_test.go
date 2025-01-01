@@ -17,13 +17,13 @@ func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: config{
-			host: "http://example.com",
-			dbs: map[string]db{
+		config: Config{
+			Host: "http://example.com",
+			Dbs: map[string]Db{
 				"banan": {
-					name: "api_raw_responses",
-					user: "logger",
-					pw:   "logger",
+					Name:     "api_raw_responses",
+					User:     "logger",
+					Password: "logger",
 				},
 			},
 		}}
@@ -42,13 +42,13 @@ func TestSaveRawApiRes_returnsError_whenRawApiResIsIvalidJson(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: config{
-			host: "https://not-existing-domain.com",
-			dbs: map[string]db{
+		config: Config{
+			Host: "https://not-existing-domain.com",
+			Dbs: map[string]Db{
 				"api_raw_responses": {
-					name: "api_raw_responses",
-					user: "logger",
-					pw:   "logger",
+					Name:     "api_raw_responses",
+					User:     "logger",
+					Password: "logger",
 				},
 			},
 		}}
@@ -73,13 +73,13 @@ func TestSaveRawApiRes_returnsError_whenDbNotReachable(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: config{
-			host: "https://not-existing-domain.com",
-			dbs: map[string]db{
+		config: Config{
+			Host: "https://not-existing-domain.com",
+			Dbs: map[string]Db{
 				"api_raw_responses": {
-					name: "api_raw_responses",
-					user: "logger",
-					pw:   "logger",
+					Name:     "api_raw_responses",
+					User:     "logger",
+					Password: "logger",
 				},
 			},
 		}}
@@ -104,13 +104,13 @@ func TestSaveRawApiRes_returnsError_whenDbCallIsUnsuccesful(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: config{
-			host: ts.URL,
-			dbs: map[string]db{
+		config: Config{
+			Host: ts.URL,
+			Dbs: map[string]Db{
 				"api_raw_responses": {
-					name: "api_raw_responses",
-					user: "logger",
-					pw:   "logger",
+					Name:     "api_raw_responses",
+					User:     "logger",
+					Password: "logger",
 				},
 			},
 		}}
@@ -155,13 +155,13 @@ func TestSaveRawApiRes_callsDbEndpoint(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: config{
-			host: ts.URL,
-			dbs: map[string]db{
+		config: Config{
+			Host: ts.URL,
+			Dbs: map[string]Db{
 				"api_raw_responses": {
-					name: "api_raw_responses",
-					user: "logger",
-					pw:   "logger",
+					Name:     "api_raw_responses",
+					User:     "logger",
+					Password: "logger",
 				},
 			},
 		}}
