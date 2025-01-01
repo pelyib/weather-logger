@@ -1,0 +1,33 @@
+{
+    "lat": 47.498,
+    "lon": 19.0399,
+    "tz": "+01:00",
+    "date": "2024-12-31",
+    "units": "metric",
+    "cloud_cover": {
+        "afternoon": 100.0
+    },
+    "humidity": {
+        "afternoon": 93.0
+    },
+    "precipitation": {
+        "total": 0.33
+    },
+    "temperature": {
+        "min": -2.71,
+        "max": -0.92,
+        "afternoon": -1.71,
+        "night": -1.13,
+        "evening": -1.71,
+        "morning": -1.72
+    },
+    "pressure": {
+        "afternoon": 1032.0
+    },
+    "wind": {
+        "max": {
+            "speed": 2.57,
+            "direction": 150.0
+        }
+    }
+}

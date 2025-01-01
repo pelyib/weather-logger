@@ -75,6 +75,7 @@ type owForecast struct {
 type owHistorical struct {
 	cnf *shared.LoggerCnf
 	l   shared.Logger
+	now now
 }
 
 func (owh owHistorical) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
@@ -306,6 +307,86 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 	}
 
 	return mrs
+}
+
+func (owh owHistorical) sourceId() string {
+	return "openweather.historical"
+}
+
+func (owh owHistorical) fetch(sr shared.SearchRequest) ([]byte, error) {
+	today, _ := time.Parse("2006-01-02", owh.now().Format("2006-01-02"))
+	yesterday := today.Add(time.Hour * 24 * -1)
+
+	client := http.Client{}
+	q := url.Values{}
+	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Langitude))
+	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
+	q.Add("appid", owh.cnf.ForecastProviders.OpenWeather.AppId)
+	q.Add("units", "metric")
+	q.Add("date", yesterday.Format("2006-01-02"))
+
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("%s/data/3.0/onecall/day_summary", owh.cnf.ForecastProviders.OpenWeather.Host),
+		nil,
+	)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Can not build request | Reason: %s", err.Error()))
+	}
+
+	req.URL.RawQuery = q.Encode()
+	res, err := client.Do(req)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Fetching forecasts from OpenWeather failed | Reason: %s ", err.Error()))
+	}
+
+	if res.StatusCode >= 400 {
+		return nil, errors.New(fmt.Sprintf("Fetching forecasts from OpenWeather failed, HTTP status code: %s", res.Status))
+	}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Response body reading failed | Reason: %s", err.Error()))
+	}
+
+	return body, nil
+}
+
+func (owh owHistorical) mapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
+	var decodedBody struct {
+		Temperature struct {
+			Min float32 `json:"min"`
+			Max float32 `json:"max"`
+		} `json:"temperature"`
+	}
+
+	err := json.Unmarshal(rawApiRes, &decodedBody)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Could not parse raw response body | Reason: %s", err.Error()))
+	}
+
+	today, _ := time.Parse("2006-01-02", owh.now().Format("2006-01-02"))
+
+	mrs := shared.MakeEmptyResults()
+	mrs = append(
+		mrs,
+		shared.MeasurementResult{
+			Source:     "OpenWeather",
+			Type:       shared.MeasurementResult_Type_Historical,
+			Min:        decodedBody.Temperature.Min,
+			Max:        decodedBody.Temperature.Max,
+			At:         today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
+			RecordedAt: owh.now().Format(time.RFC3339),
+			Loc:        loc,
+		},
+	)
+
+	return mrs, nil
 }
 
 func MakeOpenWeatherForecastProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
