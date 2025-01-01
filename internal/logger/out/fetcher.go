@@ -14,7 +14,7 @@ type WeatherProviderAdapter interface {
 }
 
 type DbClient interface {
-	saveRawApiRes(sourceId string, rawApiRes []byte)
+	saveRawApiRes(sourceId string, rawApiRes []byte) error
 }
 
 type Fetcher struct {
@@ -37,10 +37,19 @@ func (f Fetcher) GetMeasurement(searchRequest shared.SearchRequest) []shared.Mea
 		return shared.MakeEmptyResults()
 	}
 
-	f.dbClient.saveRawApiRes(f.weatherProviderAdapter.sourceId(), rawApiRes)
+	err = f.dbClient.saveRawApiRes(f.weatherProviderAdapter.sourceId(), rawApiRes)
 
-	// TODO: handle errors here [pelyib]
-	measurements, _ := f.weatherProviderAdapter.mapToMeasurements(rawApiRes, searchRequest.Loc)
+	if err != nil {
+		f.logger.Error(fmt.Sprintf("Saving raw API response failed, reason: %s", err.Error()))
+	}
+
+	measurements, err := f.weatherProviderAdapter.mapToMeasurements(rawApiRes, searchRequest.Loc)
+
+	if err != nil {
+		f.logger.Error(fmt.Sprintf("Mapping raw API response to measurements failed, reason: %s", err.Error()))
+
+		return shared.MakeEmptyResults()
+	}
 
 	return measurements
 }

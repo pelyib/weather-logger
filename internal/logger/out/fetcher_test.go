@@ -16,6 +16,7 @@ type AdapterMock struct {
 	MapperCalled bool
 	MapperInput  []byte
 	MapperResult []shared.MeasurementResult
+	MapperError  error
 }
 
 func (m *AdapterMock) sourceId() string {
@@ -40,8 +41,12 @@ func (m *AdapterMock) fetch(sr shared.SearchRequest) ([]byte, error) {
 func (m *AdapterMock) mapToMeasurements(rawApiRes []byte, loc shared.Location) ([]shared.MeasurementResult, error) {
 	m.MapperCalled = true
 	m.MapperInput = rawApiRes
-	if m.MapperResult == nil {
+	if m.MapperResult == nil && m.MapperError == nil {
 		return shared.MakeEmptyResults(), nil
+	}
+
+	if m.MapperError != nil {
+		return nil, m.MapperError
 	}
 
 	return m.MapperResult, nil
@@ -50,11 +55,18 @@ func (m *AdapterMock) mapToMeasurements(rawApiRes []byte, loc shared.Location) (
 type couchDbClientMock struct {
 	SaveRawApiResCalled bool
 	SaveRawApiResInput  []byte
+	SaveRawApiResResult error
 }
 
-func (c *couchDbClientMock) saveRawApiRes(sourceId string, rawApiRes []byte) {
+func (c *couchDbClientMock) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 	c.SaveRawApiResCalled = true
 	c.SaveRawApiResInput = rawApiRes
+
+	if c.SaveRawApiResResult != nil {
+		return c.SaveRawApiResResult
+	}
+
+	return nil
 }
 
 type loggerMock struct {
@@ -72,14 +84,14 @@ func (l *loggerMock) Error(msg string) {
 func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
 	adapterMock := &AdapterMock{}
 	couchDbClientMock := &couchDbClientMock{}
-	fetcher := Fetcher{
+	sut := Fetcher{
 		weatherProviderAdapter: adapterMock,
 		dbClient:               couchDbClientMock,
 	}
 	expectedResults := shared.MakeEmptyResults()
 	searchRequest := shared.SearchRequest{Loc: shared.Location{Name: "thisisatest"}}
 
-	results := fetcher.GetMeasurement(searchRequest)
+	actual := sut.GetMeasurement(searchRequest)
 
 	if !adapterMock.FetchCalled {
 		t.Errorf("Expected Fetch to be called on the adapter, but it was not.")
@@ -87,27 +99,28 @@ func TestGetMeasurement_callsRemoteApiClientWithTheSearchRequest(t *testing.T) {
 	if searchRequest != adapterMock.FetchInput {
 		t.Errorf("Expected Fetch to be called with searchRequest, but it was not")
 	}
-	if results == nil || len(results) != len(expectedResults) {
-		t.Errorf("Expected results to be %v, got %v", expectedResults, results)
+	if actual == nil || len(actual) != len(expectedResults) {
+		t.Errorf("Expected results to be %v, got %v", expectedResults, actual)
 	}
 }
 
 func TestGetMeasurement_returnsEmptyCollection_WhenFetchFails(t *testing.T) {
-	adapterMock := &AdapterMock{}
+	adapterMock := &AdapterMock{
+		FetchResult: nil,
+		FetchError:  fmt.Errorf("test error"),
+	}
 	couchDbClientMock := &couchDbClientMock{}
 	loggerMock := &loggerMock{}
-	fetcher := Fetcher{
+	sut := Fetcher{
 		weatherProviderAdapter: adapterMock,
 		dbClient:               couchDbClientMock,
 		logger:                 loggerMock,
 	}
-	searchRequest := shared.SearchRequest{}
-	adapterMock.FetchResult = nil
-	adapterMock.FetchError = fmt.Errorf("test error")
 
-	results := fetcher.GetMeasurement(searchRequest)
-	if results == nil || len(results) != 0 {
-		t.Errorf("Expected results to be empty, got %v", results)
+	actual := sut.GetMeasurement(shared.SearchRequest{})
+
+	if actual == nil || len(actual) != 0 {
+		t.Errorf("Expected results to be empty, got %v", actual)
 	}
 
 	if !loggerMock.ErrorCalled {
@@ -119,68 +132,131 @@ func TestGetMeasurement_returnsEmptyCollection_WhenFetchFails(t *testing.T) {
 }
 
 func TestGetMeasurement_callsMapperWithTheRemoteApiResponseBody(t *testing.T) {
-	adapterMock := &AdapterMock{}
+	expectedResults := shared.MakeEmptyResults()
+	adapterMock := &AdapterMock{MapperResult: expectedResults}
 	couchDbClientMock := &couchDbClientMock{}
-	fetcher := Fetcher{
+
+	sut := Fetcher{
 		weatherProviderAdapter: adapterMock,
 		dbClient:               couchDbClientMock,
 	}
-	searchRequest := shared.SearchRequest{}
-	expectedResults := shared.MakeEmptyResults()
-	adapterMock.MapperResult = expectedResults
-	results := fetcher.GetMeasurement(searchRequest)
+
+	actual := sut.GetMeasurement(shared.SearchRequest{})
 
 	if !adapterMock.MapperCalled {
 		t.Errorf("Expected MapToMeasurements to be called on the adapter, but it was not")
 	}
 
-	if results == nil || len(results) != len(expectedResults) {
-		t.Errorf("Expected results to be %v, got %v", expectedResults, results)
+	if actual == nil || len(actual) != len(expectedResults) {
+		t.Errorf("Expected results to be %v, got %v", expectedResults, actual)
 	}
 }
 
-func TestGetMeasurement_savesRawApiResponsesToDb(t *testing.T) {
+func TestGetMeasurement_logsError_whenCouldNotSaveRawApiResponse(t *testing.T) {
 	adapterMock := &AdapterMock{}
-	couchDbClientMock := &couchDbClientMock{}
-	fetcher := Fetcher{
+	couchDbClientMock := &couchDbClientMock{
+		SaveRawApiResResult: fmt.Errorf("test error"),
+	}
+	loggerMock := &loggerMock{}
+
+	sut := Fetcher{
 		weatherProviderAdapter: adapterMock,
 		dbClient:               couchDbClientMock,
+		logger:                 loggerMock,
 	}
 
 	searchRequest := shared.SearchRequest{}
 	expectedResults := shared.MakeEmptyResults()
 	adapterMock.MapperResult = expectedResults
-	fetcher.GetMeasurement(searchRequest)
+
+	sut.GetMeasurement(searchRequest)
+
+	if !couchDbClientMock.SaveRawApiResCalled {
+		t.Errorf("Expected saveRawApiRes to be called on the dbClient, but it was not")
+	}
+
+	if !loggerMock.ErrorCalled {
+		t.Errorf("Expected logger to be called, but it was not")
+	}
+
+	if loggerMock.ErrorInput != "Saving raw API response failed, reason: test error" {
+		t.Errorf("Expected logger message mismatch, got %s", loggerMock.ErrorInput)
+	}
+}
+
+func TestGetMeasurement_savesRawApiResponsesToDb(t *testing.T) {
+	adapterMock := &AdapterMock{
+		MapperResult: shared.MakeEmptyResults(),
+	}
+	couchDbClientMock := &couchDbClientMock{}
+
+	sut := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
+
+	sut.GetMeasurement(shared.SearchRequest{})
 
 	if !couchDbClientMock.SaveRawApiResCalled {
 		t.Errorf("Expected saveRawApiRes to be called on the dbClient, but it was not")
 	}
 }
 
-func TestGetMeasurement_returnsACollectionOfMeasurements(t *testing.T) {
-	adapterMock := &AdapterMock{}
+func TestGetMeasurement_returnsEmptyCollection_whenMapperReturnsNilInCaseOfError(t *testing.T) {
+	adapterMock := &AdapterMock{
+		MapperResult: nil,
+		MapperError:  fmt.Errorf("test error"),
+	}
 	couchDbClientMock := &couchDbClientMock{}
-	fetcher := Fetcher{
+	loggerMock := &loggerMock{}
+
+	sut := Fetcher{
 		weatherProviderAdapter: adapterMock,
 		dbClient:               couchDbClientMock,
+		logger:                 loggerMock,
 	}
+
+	actual := sut.GetMeasurement(shared.SearchRequest{})
+
+	if len(actual) != 0 {
+		t.Errorf("Expected results to be empty, got %v", actual)
+	}
+
+	if !loggerMock.ErrorCalled {
+		t.Errorf("Expected logger to be called, but it was not")
+	}
+
+	if loggerMock.ErrorInput != "Mapping raw API response to measurements failed, reason: test error" {
+		t.Errorf("Expected logger message mismatch, got %s", loggerMock.ErrorInput)
+	}
+}
+
+func TestGetMeasurement_returnsACollectionOfMeasurements(t *testing.T) {
 	expectedResults := shared.MakeEmptyResults()
 	expectedResults = append(expectedResults, shared.MeasurementResult{
 		Source: "test",
 		Type:   "test",
 	})
+	adapterMock := &AdapterMock{
+		MapperResult: expectedResults,
+	}
 
-	adapterMock.MapperResult = expectedResults
+	couchDbClientMock := &couchDbClientMock{}
+
+	sut := Fetcher{
+		weatherProviderAdapter: adapterMock,
+		dbClient:               couchDbClientMock,
+	}
 
 	searchRequest := shared.SearchRequest{Loc: shared.Location{Name: "thisisatest"}}
 
-	results := fetcher.GetMeasurement(searchRequest)
+	actual := sut.GetMeasurement(searchRequest)
 
-	if len(results) != 1 {
-		t.Errorf(fmt.Sprintf("Expected the collection contains only 1 item, but it has %d items", len(results)))
+	if len(actual) != 1 {
+		t.Errorf(fmt.Sprintf("Expected the collection contains only 1 item, but it has %d items", len(actual)))
 	}
 
-	if !reflect.DeepEqual(results, expectedResults) {
+	if !reflect.DeepEqual(actual, expectedResults) {
 		t.Errorf("Expected collection is different")
 	}
 }
