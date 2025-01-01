@@ -277,27 +277,41 @@ func TestOpenWeatherHistorical_fetch_returnsError_whenCallFailed(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	sut := owHistorical{cnf: &shared.LoggerCnf{
-		ForecastProviders: struct {
-			OpenWeather struct {
-				Host  string
-				AppId string
-			} `yaml:"openWeather"`
-			AccuWeather struct {
-				Host  string
-				AppId string
-			} `yaml:"accuweather"`
-		}{
-			OpenWeather: struct {
-				Host  string
-				AppId string
+	sut := owHistorical{
+		now: func() time.Time {
+			return time.Date(2025, 01, 01, 10, 11, 12, 0, time.UTC)
+		},
+		cnf: &shared.LoggerCnf{
+			ForecastProviders: struct {
+				OpenWeather struct {
+					Host  string
+					AppId string
+				} `yaml:"openWeather"`
+				AccuWeather struct {
+					Host  string
+					AppId string
+				} `yaml:"accuweather"`
 			}{
-				Host:  ts.URL,
-				AppId: "app-id",
-			}},
-	}}
+				OpenWeather: struct {
+					Host  string
+					AppId string
+				}{
+					Host:  ts.URL,
+					AppId: "app-id",
+				}},
+		}}
 
-	result, err := sut.fetch(shared.SearchRequest{})
+	result, err := sut.fetch(shared.SearchRequest{
+		Loc: shared.Location{
+			GeoLocation: struct {
+				Langitude float64 `yaml:"langitude" json:"langitude"`
+				Longitude float64 `yaml:"longitude" json:"longitude"`
+			}{
+				Langitude: 13.0,
+				Longitude: 42.0,
+			},
+		},
+	})
 
 	if err == nil {
 		t.Error("Expected error, got nothing")
