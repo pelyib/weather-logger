@@ -3,11 +3,17 @@ package out
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
 )
+
+// =====================
+// ===== FORECASTS =====
+// =====================
 
 func TestOpenWeatherForecast_sourceId_returnsIt(t *testing.T) {
 	awf := owForecast{}
@@ -166,3 +172,94 @@ func TestOpenWeatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testin
 		t.Errorf("Expected response mismatch, got %s", string(result))
 	}
 }
+
+func TestOpenWeatherForecast_mapToMeasurement_returnsError_whenRawIsInvalid(t *testing.T) {
+	sut := owForecast{}
+	measurements, err := sut.mapToMeasurements([]byte("invalid"), shared.Location{})
+
+	if err == nil {
+		t.Error("Expected error, got nothing")
+	}
+
+	if err.Error() != "Could not parse raw response body | Reason: invalid character 'i' looking for beginning of value" {
+		t.Errorf("Expected error message mismatch, got %s", err.Error())
+	}
+
+	if measurements != nil {
+		t.Errorf("Expected nil as measurements, got %v", measurements)
+	}
+}
+
+func TestOpenWeatherForecast_mapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
+	data, err := os.ReadFile("./../../../testdata/out/openweather_forecast.json")
+
+	if err != nil {
+		t.Errorf("Tried to load testdata, but got error: %s", err.Error())
+	}
+
+	sut := owForecast{
+		now: func() time.Time {
+			return time.Date(2025, 01, 01, 10, 11, 12, 0, time.UTC)
+		},
+	}
+	measurements, err := sut.mapToMeasurements(data, shared.Location{})
+
+	if err != nil {
+		t.Errorf("Expected no error, got %s", err.Error())
+	}
+
+	if len(measurements) != 8 {
+		t.Errorf("Expected 8 elements, got %d", len(measurements))
+	}
+
+	minMaxValues := []map[string]float32{
+		{"min": -2.71, "max": 3.62},
+		{"min": 1.06, "max": 9.27},
+		{"min": 1.08, "max": 5.98},
+		{"min": -0.17, "max": 2.7},
+		{"min": -0.83, "max": 5.86},
+		{"min": 6.34, "max": 10.88},
+		{"min": 7.28, "max": 13.2},
+		{"min": 6.27, "max": 11.84},
+	}
+	atValues := []string{
+		"2025-01-01T00:00:00Z",
+		"2025-01-02T00:00:00Z",
+		"2025-01-03T00:00:00Z",
+		"2025-01-04T00:00:00Z",
+		"2025-01-05T00:00:00Z",
+		"2025-01-06T00:00:00Z",
+		"2025-01-07T00:00:00Z",
+		"2025-01-08T00:00:00Z",
+	}
+
+	for i, item := range measurements {
+		if item.Source != "OpenWeather" {
+			t.Errorf("Expected OpenWeather, got %s", item.Source)
+		}
+
+		if item.Type != shared.MeasurementResult_Type_Forecast {
+			t.Errorf("Expected Forecast, got %s", item.Type)
+		}
+
+		if item.Min != minMaxValues[i]["min"] {
+			t.Errorf("Expected min mismatch, got %f", item.Min)
+		}
+
+		if item.Max != minMaxValues[i]["max"] {
+			t.Errorf("Expected max mismatch, got %f", item.Max)
+		}
+
+		if item.At != atValues[i] {
+			t.Errorf("Expected at mismatch, got %s", item.At)
+		}
+
+		if item.RecordedAt != "2025-01-01T10:11:12Z" {
+			t.Errorf("Expected recordedAt mismatch, got %s", item.RecordedAt)
+		}
+	}
+}
+
+// ======================
+// ===== HISTORICAL =====
+// ======================
