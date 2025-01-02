@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
@@ -17,9 +19,9 @@ func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: Config{
+		config: shared.CouchDb{
 			Host: "http://example.com",
-			Dbs: map[string]Db{
+			Dbs: map[string]shared.Db{
 				"banan": {
 					Name:     "api_raw_responses",
 					User:     "logger",
@@ -42,9 +44,9 @@ func TestSaveRawApiRes_returnsError_whenRawApiResIsIvalidJson(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: Config{
+		config: shared.CouchDb{
 			Host: "https://not-existing-domain.com",
-			Dbs: map[string]Db{
+			Dbs: map[string]shared.Db{
 				"api_raw_responses": {
 					Name:     "api_raw_responses",
 					User:     "logger",
@@ -73,9 +75,9 @@ func TestSaveRawApiRes_returnsError_whenDbNotReachable(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: Config{
+		config: shared.CouchDb{
 			Host: "https://not-existing-domain.com",
-			Dbs: map[string]Db{
+			Dbs: map[string]shared.Db{
 				"api_raw_responses": {
 					Name:     "api_raw_responses",
 					User:     "logger",
@@ -104,9 +106,9 @@ func TestSaveRawApiRes_returnsError_whenDbCallIsUnsuccesful(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: Config{
+		config: shared.CouchDb{
 			Host: ts.URL,
-			Dbs: map[string]Db{
+			Dbs: map[string]shared.Db{
 				"api_raw_responses": {
 					Name:     "api_raw_responses",
 					User:     "logger",
@@ -155,9 +157,9 @@ func TestSaveRawApiRes_callsDbEndpoint(t *testing.T) {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")
 			return now
 		},
-		config: Config{
+		config: shared.CouchDb{
 			Host: ts.URL,
-			Dbs: map[string]Db{
+			Dbs: map[string]shared.Db{
 				"api_raw_responses": {
 					Name:     "api_raw_responses",
 					User:     "logger",

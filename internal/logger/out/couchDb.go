@@ -8,24 +8,15 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/pelyib/weather-logger/internal/shared"
 )
 
 type now func() time.Time
 
 type client struct {
-	config Config
+	config shared.CouchDb
 	now    now
-}
-
-type Config struct {
-	Host string        `json:"host"`
-	Dbs  map[string]Db `json:"dbs"`
-}
-
-type Db struct {
-	Name     string `json:"name"`
-	User     string `json:"user"`
-	Password string `json:"pw"`
 }
 
 type record struct {
@@ -39,14 +30,14 @@ type dbSchema struct {
 }
 
 func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
-	var selectedDb Db
+	var selectedDb shared.Db
 	for id, db := range c.config.Dbs {
 		if id == "api_raw_responses" {
 			selectedDb = db
 		}
 	}
-	if (selectedDb == Db{}) {
-		return errors.New("No DB config specified for raw_api_responses")
+	if (selectedDb == shared.Db{}) {
+		return errors.New("No DB config specified for api_raw_responses")
 	}
 
 	var result map[string]interface{}
@@ -91,7 +82,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 	return nil
 }
 
-func MakeNewClient(conf Config) client {
+func MakeNewClient(conf shared.CouchDb) client {
 	return client{
 		now: func() time.Time {
 			return time.Now()

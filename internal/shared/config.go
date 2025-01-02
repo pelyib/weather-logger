@@ -20,6 +20,17 @@ type Database struct {
 	Buckets  []string `yaml:"buckets"`
 }
 
+type CouchDb struct {
+	Host string        `yaml:"host"`
+	Dbs  map[string]Db `yaml:"dbs"`
+}
+
+type Db struct {
+	Name     string `yaml:"name"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+}
+
 type Mq struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
@@ -40,6 +51,7 @@ type HttpCnf struct {
 
 type LoggerCnf struct {
 	Database          Database   `yaml:"database"`
+	CouchDb           CouchDb    `yaml:"couchdb"`
 	Mq                Mq         `yaml:"mq"`
 	Cities            []CityCnf  `yaml:"cities"`
 	Locations         []Location `yaml:"locations"`
