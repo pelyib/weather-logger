@@ -12,17 +12,15 @@ import (
 	"github.com/pelyib/weather-logger/internal/shared"
 )
 
-type now func() time.Time
-
 type client struct {
 	config shared.CouchDb
-	now    now
+	now    func() time.Time
 }
 
 type record struct {
-	CalledAt string                 `json:"calledAt"`
-	SourceId string                 `json:"sourceId"`
-	Raw      map[string]interface{} `json:"raw"`
+	CalledAt string      `json:"calledAt"`
+	SourceId string      `json:"sourceId"`
+	Raw      interface{} `json:"raw"`
 }
 
 type dbSchema struct {
@@ -40,7 +38,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 		return errors.New("No DB config specified for api_raw_responses")
 	}
 
-	var result map[string]interface{}
+	var result interface{}
 	err := json.Unmarshal(rawApiRes, &result)
 	if err != nil {
 		return err
@@ -84,9 +82,7 @@ func (c client) saveRawApiRes(sourceId string, rawApiRes []byte) error {
 
 func MakeNewClient(conf shared.CouchDb) client {
 	return client{
-		now: func() time.Time {
-			return time.Now()
-		},
+		now:    now,
 		config: conf,
 	}
 }

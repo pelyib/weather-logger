@@ -8,14 +8,27 @@ logger:
   forecast-providers:
     openWeather:
       appid: "{your app id / key}"
+      host: "https://api.openweathermap.org"
     accuweather:
       appid: "{your app id}"
+      host: "http://dataservice.accuweather.com"
   database:
     folder: "/path/to/database/"
     fileName: "filename.db"
     buckets:
       - "logger-bucket-a"
       - "logger-bucket-b"
+  couchdb:
+    host: "https://couchDb:1234"
+    dbs:
+      api_raw_responses:
+        name: "db_name"
+        user: "user"
+        password: "pw"
+      metrics:
+        name: "db_name"
+        user: "user"
+        password: "pw"
   mq:
     user: "mq-user"
     password: "mq-password"

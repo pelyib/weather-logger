@@ -38,7 +38,7 @@ func TestSaveRawApiRes_returnsError_whenNoDbConfigGiven(t *testing.T) {
 	}
 }
 
-func TestSaveRawApiRes_returnsError_whenRawApiResIsIvalidJson(t *testing.T) {
+func TestSaveRawApiRes_returnsError_whenRawApiResIsInvalidJson(t *testing.T) {
 	c := client{
 		now: func() time.Time {
 			now, _ := time.Parse("2006-01-02 03:04:05", "2024-12-12 10:10:10")

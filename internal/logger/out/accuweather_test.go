@@ -157,7 +157,7 @@ func TestAccuweatherForecast_fetch_returnsRawResponse_whenCallSucceeds(t *testin
 
 func TestAccuweatherForecast_mapToMeasurement_returnsACollection_whenRawIsValid(t *testing.T) {
 	awf := awForecast{
-		clock: func() time.Time {
+		now: func() time.Time {
 			return time.Date(2024, 12, 27, 10, 11, 12, 0, time.UTC)
 		},
 	}
