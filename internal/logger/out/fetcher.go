@@ -15,6 +15,7 @@ type WeatherProviderAdapter interface {
 
 type DbClient interface {
 	saveRawApiRes(sourceId string, rawApiRes []byte) error
+	saveMeasurements(measurements []shared.MeasurementResult) error
 }
 
 type Fetcher struct {

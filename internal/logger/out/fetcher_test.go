@@ -69,6 +69,10 @@ func (c *couchDbClientMock) saveRawApiRes(sourceId string, rawApiRes []byte) err
 	return nil
 }
 
+func (c *couchDbClientMock) saveMeasurements(measurements []shared.MeasurementResult) error {
+	return nil
+}
+
 type loggerMock struct {
 	ErrorCalled bool
 	ErrorInput  string
