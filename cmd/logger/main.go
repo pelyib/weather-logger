@@ -22,13 +22,14 @@ func main() {
 	dbLogger := shared.MakeCliLogger("logger", "DB")
 	dbLogger.Info("loading database")
 	db := internal.MakeDb(&cnf.Database, dbLogger)
-	dbLogger.Info("database loaded succesfully")
+	dbLogger.Info("database loaded successfully")
 
 	c := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Logger, "MQ"))
 
 	observers := []business.Observer{
 		out.MakeCliObserver(false, shared.MakeCliLogger(shared.App_Logger, "Observer.Cli")),
 		out.MakeHttpObserver(c, shared.MakeCliLogger(shared.App_Logger, "Observer.Http")),
+		out.MakeCouchdbObserver(cnf),
 	}
 
 	cons := mq.Consumer{

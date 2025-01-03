@@ -55,7 +55,7 @@ func (c client) saveMeasurements(measurements []shared.MeasurementResult) error 
 
 		serializedMeasurement, _ := json.Marshal(data)
 
-		err := c.put("measurements", serializedMeasurement)
+		err := c.put("metrics", serializedMeasurement)
 		if err != nil {
 			return err
 		}

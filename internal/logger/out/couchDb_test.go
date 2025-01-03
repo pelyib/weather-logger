@@ -230,7 +230,7 @@ func Test_saveRawApiRes_callsPutWithCorrectData(t *testing.T) {
 func Test_saveMeasurement_callsPutForEveryMeasurement(t *testing.T) {
 	called := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/measurements/") {
+		if !strings.HasPrefix(r.URL.Path, "/metrics/") {
 			t.Fatalf("Expected path mismatch, got %s", r.URL.Path)
 
 			w.WriteHeader(404)
@@ -272,8 +272,8 @@ func Test_saveMeasurement_callsPutForEveryMeasurement(t *testing.T) {
 		config: shared.CouchDb{
 			Host: ts.URL,
 			Dbs: map[string]shared.Db{
-				"measurements": {
-					Name:     "measurements",
+				"metrics": {
+					Name:     "metrics",
 					User:     "logger",
 					Password: "logger",
 				},
@@ -299,7 +299,7 @@ func Test_saveMeasurement_callsPutForEveryMeasurement(t *testing.T) {
 func Test_saveMeasurement_returnsError_ifAnyCallFails(t *testing.T) {
 	called := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/measurements/") {
+		if !strings.HasPrefix(r.URL.Path, "/metrics/") {
 			t.Fatalf("Expected path mismatch, got %s", r.URL.Path)
 
 			w.WriteHeader(404)
@@ -347,8 +347,8 @@ func Test_saveMeasurement_returnsError_ifAnyCallFails(t *testing.T) {
 		config: shared.CouchDb{
 			Host: ts.URL,
 			Dbs: map[string]shared.Db{
-				"measurements": {
-					Name:     "measurements",
+				"metrics": {
+					Name:     "metrics",
 					User:     "logger",
 					Password: "logger",
 				},

@@ -20,6 +20,10 @@ type httpObs struct {
 	l       shared.Logger
 }
 
+type couchdbObs struct {
+	client DbClient
+}
+
 func (cli cliObs) Notify(mrs []shared.MeasurementResult) {
 	cli.l.Info(fmt.Sprintf("%d measurements results fetched", len(mrs)))
 
@@ -48,10 +52,18 @@ func (http httpObs) Notify(mrs []shared.MeasurementResult) {
 	}
 }
 
+func (couchdb couchdbObs) Notify(mrs []shared.MeasurementResult) {
+	couchdb.client.saveMeasurements(mrs)
+}
+
 func MakeCliObserver(verbose bool, l shared.Logger) business.Observer {
 	return cliObs{verbose: verbose, l: l}
 }
 
 func MakeHttpObserver(c *amqp.Channel, l shared.Logger) business.Observer {
 	return httpObs{channel: c, l: l}
+}
+
+func MakeCouchdbObserver(cnf *shared.LoggerCnf) business.Observer {
+	return couchdbObs{client: MakeNewClient(cnf.CouchDb)}
 }
