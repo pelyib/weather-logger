@@ -1,7 +1,6 @@
 package business
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -20,11 +19,6 @@ const DatasetLabelForecastMaxRange string = "Forecast MAX range"
 const DatasetLabelHistoricalMin string = "Historical MIN"
 const DatasetLabelHistoricalMax string = "Historical MAX"
 
-// TODO implement Chart interface, use it everywhere [botond.pelyi]
-type ChartI interface {
-	Loc() shared.Location
-}
-
 type ChartSearchRequestI interface {
 	GetYm() string
 	HasLoc() bool
@@ -33,11 +27,10 @@ type ChartSearchRequestI interface {
 }
 
 type Chart struct {
-	Ym       string `json:"ym"`
-	Loc      shared.Location
-	Labels   []int64    `json:"labels"`
-	Datasets []*Dataset `json:"datasets"`
-	IsNew    bool
+	Ym       string          `json:"ym"`
+	Loc      shared.Location `json:"loc"`
+	Labels   []int64         `json:"labels"`
+	Datasets []*Dataset      `json:"datasets"`
 }
 
 type Dataset struct {
@@ -69,17 +62,15 @@ func (csr ChartSearchRequest) GetLoc() shared.Location {
 	return csr.Loc
 }
 
-// TODO csr should be immutable [botond.pelyi]
 func (csr ChartSearchRequest) WithoutLoc() ChartSearchRequestI {
-	copy := csr
-	copy.Loc = shared.Location{}
-
-	return copy
+	cpy := csr
+	cpy.Loc = shared.Location{}
+	return cpy
 }
 
 type ChartRepository interface {
 	Load(csr ChartSearchRequestI) *Chart
-	Save(c Chart)
+	Save(c Chart) error
 }
 
 func (c *Chart) ForecastMinLineDataset() *Dataset {
@@ -88,7 +79,6 @@ func (c *Chart) ForecastMinLineDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyForecastMinLineDataset())
 		return c.ForecastMinLineDataset()
 	}
-
 	return ds
 }
 
@@ -98,7 +88,6 @@ func (c *Chart) ForecastMaxLineDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyForecastMaxLineDataset())
 		return c.ForecastMaxLineDataset()
 	}
-
 	return ds
 }
 
@@ -108,7 +97,6 @@ func (c *Chart) ForecastBubbleDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyForecastBubbleDataset())
 		return c.ForecastBubbleDataset()
 	}
-
 	return ds
 }
 
@@ -118,7 +106,6 @@ func (c *Chart) ForecastMaxBarDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyForecastMaxBarDataset())
 		return c.ForecastMaxBarDataset()
 	}
-
 	return ds
 }
 
@@ -128,7 +115,6 @@ func (c *Chart) ForecastMinBarDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyForecastMinBarDataset())
 		return c.ForecastMinBarDataset()
 	}
-
 	return ds
 }
 
@@ -138,7 +124,6 @@ func (c *Chart) HistoricalMinLineDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyHistoricalMinDataset())
 		return c.HistoricalMinLineDataset()
 	}
-
 	return ds
 }
 
@@ -148,9 +133,9 @@ func (c *Chart) HistoricalMaxLineDataset() *Dataset {
 		c.Datasets = append(c.Datasets, MakeEmptyHistoricalMaxDataset())
 		return c.HistoricalMaxLineDataset()
 	}
-
 	return ds
 }
+
 func (ds *Dataset) Push(key string, i Item) {
 	ds.Data[key] = i
 }
@@ -161,8 +146,7 @@ func (c Chart) selectDataset(t string, l string) (*Dataset, error) {
 			return c.Datasets[i], nil
 		}
 	}
-
-	return &Dataset{}, errors.New(fmt.Sprintf("Dataset (type: %s | label: %s) is missing", t, l))
+	return &Dataset{}, fmt.Errorf("dataset (type: %s | label: %s) is missing", t, l)
 }
 
 func MakeEmptyChart(csr ChartSearchRequestI) Chart {
@@ -183,7 +167,6 @@ func MakeEmptyChart(csr ChartSearchRequestI) Chart {
 			MakeEmptyHistoricalMaxDataset(),
 			MakeEmptyHistoricalMinDataset(),
 		},
-		IsNew: true,
 	}
 }
 
@@ -200,11 +183,11 @@ func MakeEmptyForecastBubbleDataset() *Dataset {
 }
 
 func MakeEmptyForecastMaxBarDataset() *Dataset {
-	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecasts)
+	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecastMaxRange)
 }
 
 func MakeEmptyForecastMinBarDataset() *Dataset {
-	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecasts)
+	return makeEmptyDataset(DatasetTypeBar, DatasetLabelForecastMinRange)
 }
 
 func MakeEmptyHistoricalMinDataset() *Dataset {

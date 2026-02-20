@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
-	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pelyib/weather-logger/internal"
 	"github.com/pelyib/weather-logger/internal/logger/business"
@@ -13,18 +15,26 @@ import (
 )
 
 func main() {
-	cnf, err := shared.CreateLoggerConf(shared.MakeCliLogger(shared.App_Logger, "Config"))
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
+	cnf, err := shared.CreateLoggerConf(shared.MakeCliLogger(shared.App_Logger, "Config"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	dbLogger := shared.MakeCliLogger("logger", "DB")
 	dbLogger.Info("loading database")
-	db := internal.MakeDb(&cnf.Database, dbLogger)
-	dbLogger.Info("database loaded succesfully")
+	db, err := internal.MakeDb(&cnf.Database, dbLogger)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	dbLogger.Info("database loaded successfully")
 
-	c := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Logger, "MQ"))
+	c, err := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Logger, "MQ"))
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	observers := []business.Observer{
 		out.MakeCliObserver(false, shared.MakeCliLogger(shared.App_Logger, "Observer.Cli")),
@@ -36,8 +46,8 @@ func main() {
 		Handlers: map[string]mq.Executor{
 			business.COMMAND_FETCH_FORECASTS: in.MakeFetchCommandExecutor(
 				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
-					out.MakeAccuWeatherForecastProvider(cnf, &db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
-					out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Operweater.Forecast")),
+					out.MakeAccuWeatherForecastProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
+					out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Forecast")),
 				}),
 				observers,
 			),
@@ -45,7 +55,7 @@ func main() {
 				business.MakeMeasurementResultProviderPool(
 					[]business.MeasurementResultProvider{
 						out.MakeAccuWeatherHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Historical")),
-						out.MakeOpenWeatherHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Operweater.Historical")),
+						out.MakeOpenWeatherHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Historical")),
 					},
 				),
 				observers,
@@ -55,9 +65,7 @@ func main() {
 		L: shared.MakeCliLogger(shared.App_Logger, "MQ.consumer"),
 	}
 
-	err = cons.Consume()
-
-	if err != nil {
-		os.Exit(17)
+	if err := cons.Consume(ctx); err != nil {
+		log.Fatalln(err)
 	}
 }

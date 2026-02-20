@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pelyib/weather-logger/internal/shared"
@@ -15,10 +16,10 @@ type Consumer struct {
 }
 
 type Executor interface {
-	Execute(msgBody []byte)
+	Execute(msgBody []byte) error
 }
 
-func (c Consumer) Consume() error {
+func (c Consumer) Consume(ctx context.Context) error {
 	commands, err := c.C.Consume("command", c.Exchange, false, false, false, false, nil)
 
 	if err != nil {
@@ -28,15 +29,17 @@ func (c Consumer) Consume() error {
 
 	c.L.Info("start to listening")
 
-	forever := make(chan bool)
-
 	go func() {
 		for msg := range commands {
 			c.L.Info(fmt.Sprintf("routingKey: %s | body: %s", string(msg.RoutingKey), string(msg.Body)))
 
-			if _, ok := c.Handlers[msg.RoutingKey]; ok {
-				c.Handlers[msg.RoutingKey].Execute(msg.Body)
-				msg.Ack(false)
+			if handler, ok := c.Handlers[msg.RoutingKey]; ok {
+				if err := handler.Execute(msg.Body); err != nil {
+					c.L.Error(fmt.Sprintf("Executor failed for %s: %s", msg.RoutingKey, err))
+					msg.Nack(false, false)
+				} else {
+					msg.Ack(false)
+				}
 			} else {
 				msg.Reject(true)
 				c.L.Info(fmt.Sprintf("Missing executor for %s message", msg.RoutingKey))
@@ -45,7 +48,8 @@ func (c Consumer) Consume() error {
 	}()
 
 	c.L.Info(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+	<-ctx.Done()
+	c.L.Info("Consumer shutting down")
 
 	return nil
 }

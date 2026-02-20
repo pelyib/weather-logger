@@ -4,7 +4,7 @@ logger:
   cities:
     - name: "{city name}"
       longitude: "{longitude}"
-      langitude: "{langitude}"
+      latitude: "{latitude}"
   forecast-providers:
     openWeather:
       appid: "{your app id / key}"

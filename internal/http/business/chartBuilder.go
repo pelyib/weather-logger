@@ -9,13 +9,16 @@ type chartBuilderFacade struct {
 }
 
 type ChartBuilder interface {
-	Build(mrs []shared.MeasurementResult)
+	Build(mrs []shared.MeasurementResult) error
 }
 
-func (s chartBuilderFacade) Build(mrs []shared.MeasurementResult) {
+func (s chartBuilderFacade) Build(mrs []shared.MeasurementResult) error {
 	for _, b := range s.builders {
-		b.Build(mrs)
+		if err := b.Build(mrs); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func MakeChartBuilder(r *ChartRepository) ChartBuilder {

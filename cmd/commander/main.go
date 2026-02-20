@@ -33,7 +33,11 @@ func main() {
 }
 
 func executeFetchCommands(cmd string, cnf *shared.LoggerCnf, l shared.Logger) {
-	c := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Commander, "MQ"))
+	c, err := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Commander, "MQ"))
+	if err != nil {
+		l.Error(fmt.Sprintf("Could not connect to MQ, reason: %s", err.Error()))
+		os.Exit(3)
+	}
 
 	msg := amqp.Publishing{
 		DeliveryMode: amqp.Persistent,

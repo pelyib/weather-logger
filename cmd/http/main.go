@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os/signal"
 	"regexp"
+	"syscall"
+	"time"
 
 	"github.com/pelyib/weather-logger/internal"
 	"github.com/pelyib/weather-logger/internal/http/business"
@@ -39,50 +43,76 @@ func (h *regexpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// no pattern matched; send 404 response
 	http.NotFound(w, r)
 }
 
 func main() {
-	cnf, err := shared.CreateHttpConf(shared.MakeCliLogger(shared.App_Http, "Config"))
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
+	cnf, err := shared.CreateHttpConf(shared.MakeCliLogger(shared.App_Http, "Config"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	db := internal.MakeDb(&cnf.Database, shared.MakeCliLogger(shared.App_Http, "DB"))
-	cr := out.MakeChartRepository(
-		&db,
-		shared.MakeCliLogger(shared.App_Http, "ChartRepository"),
-	)
+	db, err := internal.MakeDb(&cnf.Database, shared.MakeCliLogger(shared.App_Http, "DB"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	cr := out.MakeChartRepository(db, shared.MakeCliLogger(shared.App_Http, "ChartRepository"))
 
 	go func() {
-		consume(cnf, &cr)
+		if err := consume(ctx, cnf, &cr); err != nil {
+			log.Printf("MQ consumer error: %v", err)
+		}
 	}()
 
-	serve(cnf, &cr)
+	serve(ctx, cnf, &cr)
 }
 
-func serve(cnf *shared.HttpCnf, cr *business.ChartRepository) {
+func serve(ctx context.Context, cnf *shared.HttpCnf, cr *business.ChartRepository) {
 	h := &regexpHandler{}
 
+	h.HandleFunc(regexp.MustCompile("^/health$"), func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "ok")
+	})
+
 	hh := in.MakeHistoryHandler(cnf, cr)
-	hp, _ := regexp.Compile("/[a-z]{2}/[a-z]{1,}/[0-9]{4}/[0-9]{2}")
-	h.HandleFunc(hp, func(rw http.ResponseWriter, r *http.Request) {
+	h.HandleFunc(regexp.MustCompile("/[a-z]{2}/[a-z]{1,}/[0-9]{4}/[0-9]{2}"), func(rw http.ResponseWriter, r *http.Request) {
 		hh.Handle(rw, r)
 	})
 
 	ih := in.MakeIndexHandler(cnf, cr)
-	ip, _ := regexp.Compile("/")
-	h.HandleFunc(ip, func(rw http.ResponseWriter, r *http.Request) {
+	h.HandleFunc(regexp.MustCompile("/"), func(rw http.ResponseWriter, r *http.Request) {
 		ih.Handle(rw, r)
 	})
 
-	http.ListenAndServe(fmt.Sprintf(":%d", cnf.Port), h)
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cnf.Port),
+		Handler: h,
+	}
+
+	go func() {
+		<-ctx.Done()
+		shutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutCtx); err != nil {
+			log.Printf("HTTP server shutdown error: %v", err)
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Printf("HTTP server error: %v", err)
+	}
 }
 
-func consume(cnf *shared.HttpCnf, cr *business.ChartRepository) {
-	c := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Http, "MQ"))
+func consume(ctx context.Context, cnf *shared.HttpCnf, cr *business.ChartRepository) error {
+	c, err := mq.MakeChannel(cnf.Mq, shared.MakeCliLogger(shared.App_Http, "MQ"))
+	if err != nil {
+		return err
+	}
 
 	cons := mq.Consumer{
 		Exchange: "http",
@@ -95,5 +125,5 @@ func consume(cnf *shared.HttpCnf, cr *business.ChartRepository) {
 		L: shared.MakeCliLogger(shared.App_Http, "MQ.Consumer"),
 	}
 
-	cons.Consume()
+	return cons.Consume(ctx)
 }

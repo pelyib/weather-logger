@@ -14,7 +14,7 @@ type forecastBubbleChartBuilder struct {
 	l          shared.Logger
 }
 
-func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
+func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) error {
 	b.l.Info("(forecast): start building")
 	for _, mr := range mrs {
 		if mr.Type != shared.MeasurementResult_Type_Forecast {
@@ -41,10 +41,14 @@ func (b forecastBubbleChartBuilder) Build(mrs []shared.MeasurementResult) {
 			dataset.Push(maxKey, Item{X: at.UnixMilli(), Y: mr.Max, R: bubbleR})
 		}
 
-		b.repository.Save(*chart)
+		if err := b.repository.Save(*chart); err != nil {
+			b.l.Error(fmt.Sprintf("(forecast): save failed: %s", err))
+			return err
+		}
 	}
 
 	b.l.Info("(forecast): building finished")
+	return nil
 }
 
 func MakeForecastBubbleChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {

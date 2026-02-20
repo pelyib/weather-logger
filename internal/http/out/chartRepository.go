@@ -3,7 +3,6 @@ package out
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/pelyib/weather-logger/internal/http/business"
@@ -11,7 +10,7 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const bucket string = "charts.monthly" // Use the same bucket name as in the config [botond.pelyi]
+const bucket string = "charts.monthly"
 
 type InMemmoryRepository struct {
 	key        DatabaseKey
@@ -25,11 +24,6 @@ type DatabaseRepository struct {
 	l     shared.Logger
 }
 
-type MigrationDatabaseRepository struct {
-	r business.ChartRepository
-	l shared.Logger
-}
-
 type DatabaseKey func(business.ChartSearchRequestI) []byte
 
 func (repo InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
@@ -39,31 +33,24 @@ func (repo InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business
 	}
 
 	c := repo.originRepo.Load(csr)
-
 	repo.charts[key] = c
-
 	return c
 }
 
 func (repo DatabaseRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
-	var c business.Chart = business.Chart{}
+	var c business.Chart
 	err := repo.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
-
 		v := b.Get(repo.dbKey(csr))
-
-		if v != nil {
-			err := json.Unmarshal(v, &c)
-			repo.l.Info("Chart found in database")
-			if err != nil {
-				repo.l.Error(err.Error())
-				return err
-			} else {
-				return nil
-			}
+		if v == nil {
+			return fmt.Errorf("chart not found")
 		}
-
-		return errors.New("Chart not found")
+		repo.l.Info("Chart found in database")
+		if err := json.Unmarshal(v, &c); err != nil {
+			repo.l.Error(err.Error())
+			return err
+		}
+		return nil
 	})
 
 	if err != nil {
@@ -74,43 +61,21 @@ func (repo DatabaseRepository) Load(csr business.ChartSearchRequestI) *business.
 	return &c
 }
 
-func (r MigrationDatabaseRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
-	c := r.r.Load(csr)
-
-	if c.IsNew && csr.HasLoc() {
-		c = r.r.Load(csr.WithoutLoc())
-	}
-
-	return c
-}
-
-func (r InMemmoryRepository) Save(c business.Chart) {
+func (r InMemmoryRepository) Save(c business.Chart) error {
 	r.charts[string(r.key(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}))] = &c
-
-	r.originRepo.Save(c)
+	return r.originRepo.Save(c)
 }
 
-func (r DatabaseRepository) Save(c business.Chart) {
-	err := r.db.Update(func(tx *bbolt.Tx) error {
+func (r DatabaseRepository) Save(c business.Chart) error {
+	return r.db.Update(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
-
-		if cjson, err := json.Marshal(c); err != nil {
+		cjson, err := json.Marshal(c)
+		if err != nil {
 			return err
-		} else {
-			r.l.Info("saving")
-			b.Put(r.dbKey(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}), []byte(cjson))
 		}
-
-		return nil
+		r.l.Info("saving")
+		return b.Put(r.dbKey(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}), cjson)
 	})
-
-	if err != nil {
-		r.l.Error(fmt.Sprintf("Saving failed, reason: %s", err.Error()))
-	}
-}
-
-func (r MigrationDatabaseRepository) Save(c business.Chart) {
-	r.r.Save(c)
 }
 
 func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository {
@@ -120,11 +85,9 @@ func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository
 			key.WriteString(csr.GetLoc().Country.Alpha2Code)
 			key.WriteString(csr.GetLoc().Name)
 		}
-
 		if csr.GetYm() != "" {
 			key.WriteString(csr.GetYm())
 		}
-
 		return key.Bytes()
 	}
 

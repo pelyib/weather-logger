@@ -14,14 +14,10 @@ type fetchCommandExecutor struct {
 	obs []business.Observer
 }
 
-func (executor fetchCommandExecutor) Execute(msg []byte) {
+func (executor fetchCommandExecutor) Execute(msg []byte) error {
 	msgDecoded := mq.MsgBody{}
-	err := json.Unmarshal(msg, &msgDecoded)
-
-	if err != nil {
-		fmt.Println("banan")
-		fmt.Println(err)
-		return
+	if err := json.Unmarshal(msg, &msgDecoded); err != nil {
+		return fmt.Errorf("decode message body: %w", err)
 	}
 
 	measurementResults := executor.mrp.GetMeasurement(shared.SearchRequest{Loc: msgDecoded.Loc})
@@ -29,11 +25,10 @@ func (executor fetchCommandExecutor) Execute(msg []byte) {
 	for _, observer := range executor.obs {
 		observer.Notify(measurementResults)
 	}
+
+	return nil
 }
 
 func MakeFetchCommandExecutor(mrp business.MeasurementResultProvider, obs []business.Observer) mq.Executor {
-	return fetchCommandExecutor{
-		mrp,
-		obs,
-	}
+	return fetchCommandExecutor{mrp, obs}
 }

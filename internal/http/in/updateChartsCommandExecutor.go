@@ -13,17 +13,12 @@ type executor struct {
 	cb business.ChartBuilder
 }
 
-func (e executor) Execute(msg []byte) {
+func (e executor) Execute(msg []byte) error {
 	mrs := shared.MakeEmptyResults()
-	err := json.Unmarshal(msg, &mrs)
-
-	if err == nil {
-		e.cb.Build(mrs)
-		return
+	if err := json.Unmarshal(msg, &mrs); err != nil {
+		return fmt.Errorf("decode measurement results: %w", err)
 	}
-
-	fmt.Println("UpdChartCmdExecutor | could not unmarshal message")
-	fmt.Println(err)
+	return e.cb.Build(mrs)
 }
 
 func MakeUpdateChartsCommandExecutor(cb business.ChartBuilder) mq.Executor {

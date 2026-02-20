@@ -17,13 +17,12 @@ type minAndMaxLineChartBuilder struct {
 
 type datasetSelector func(c *Chart) *Dataset
 
-func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
+func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) error {
 	b.l.Info(fmt.Sprintf("lineChartBuilder (%s): start", b.mrType))
 
 	for _, mr := range mrs {
 		if mr.Type != b.mrType {
 			b.l.Info(fmt.Sprintf("LineChartBuilder (%s): skipping measurement result", b.mrType))
-
 			continue
 		}
 
@@ -53,10 +52,14 @@ func (b minAndMaxLineChartBuilder) Build(mrs []shared.MeasurementResult) {
 		}
 
 		b.l.Info(fmt.Sprintf("(%s): %s saving", b.mrType, at.Format("2006.01")))
-		b.r.Save(*chart)
+		if err := b.r.Save(*chart); err != nil {
+			b.l.Error(fmt.Sprintf("(%s): save failed: %s", b.mrType, err))
+			return err
+		}
 	}
 
 	b.l.Info(fmt.Sprintf("(%s): finished", b.mrType))
+	return nil
 }
 
 func MakeForecastLineChartBuilder(r *ChartRepository, l shared.Logger) ChartBuilder {

@@ -60,7 +60,7 @@ type Location struct {
 		Alpha2Code string `yaml:"alpha2Code" json:"alpha2Code"`
 	} `yaml:"country" json:"country"`
 	GeoLocation struct {
-		Langitude float64 `yaml:"langitude" json:"langitude"`
+		Latitude  float64 `yaml:"latitude" json:"latitude"`
 		Longitude float64 `yaml:"longitude" json:"longitude"`
 	} `yaml:"geoLocation" json:"geoLocation"`
 	Providers struct {
@@ -74,7 +74,7 @@ type CityCnf struct {
 	Name        string  `yaml:"name"`
 	Country     string  `yaml:"country"`
 	Longitude   float64 `yaml:"longitude"`
-	Langitude   float64 `yaml:"langitude"`
+	Latitude    float64 `yaml:"latitude"`
 	Locationkey string  `yaml:"locationkey"`
 }
 

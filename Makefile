@@ -25,6 +25,13 @@ build2: ## to build binaries
 		-e CGO_ENABLED=0 -e GOOS=$(GOOS) -e GOARCH=$(GOARCH) \
 		golang:1.17.5-alpine ash -c "sh ./scripts/build-binaries.sh"
 
+test: ## to run unit tests
+	docker run --rm \
+		-v $(DIR):/app \
+		-w /app \
+		-e CGO_ENABLED=0 \
+		golang:1.17.5-alpine ash -c "go test ./internal/... -v"
+
 cs-fix: ## to fix the coding style issues
 	docker run -v $(DIR):/app -w /app golang:1.17.5-alpine ash -c "gofmt -l -w /app/internal /app/cmd"
 
