@@ -13,30 +13,32 @@ help:
 	@echo "\033[33mUsage:\033[0m\n  make [target] [arg=\"val\"...]\n\n\033[33mTargets:\033[0m"
 	@grep -E '^[\.a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[32m%-10s\033[0m %s\n", $$1, $$2}'
 
-build: ## to build binary
-	docker run -v $(DIR):/app -w /app -e CGO_ENABLED=0 -e GOOS=$(GOOS) -e GOARCH=$(GOARCH) golang:1.17.5-alpine ash -c "go build -o /app/bin/http$(FILENAME_SUBFIX) /app/cmd/http \
-		go build -o /app/bin/logger$(FILENAME_SUBFIX) /app/cmd/logger \
-		go build -o /app/bin/commander$(FILENAME_SUBFIX) /app/cmd/commander"
+mod-tidy: ## update go.sum via Docker
+	docker run --rm \
+		-v $(DIR):/app \
+		-w /app \
+		-e GOFLAGS=-mod=mod \
+		golang:1.22-alpine ash -c "go mod tidy"
 
-build2: ## to build binaries
-	docker run \
+build2: ## build the server binary inside Docker
+	docker run --rm \
 		-v $(DIR):/app \
 		-w /app \
 		-e CGO_ENABLED=0 -e GOOS=$(GOOS) -e GOARCH=$(GOARCH) \
-		golang:1.17.5-alpine ash -c "sh ./scripts/build-binaries.sh"
+		golang:1.22-alpine ash -c "go build -o /app/bin/server_$(GOOS)_$(GOARCH) /app/cmd/server"
 
-test: ## to run unit tests
+test: ## run unit tests via Docker
 	docker run --rm \
 		-v $(DIR):/app \
 		-w /app \
 		-e CGO_ENABLED=0 \
-		golang:1.17.5-alpine ash -c "go test ./internal/... -v"
+		golang:1.22-alpine ash -c "go test ./domain/... ./adapter/web/... -v"
 
-cs-fix: ## to fix the coding style issues
-	docker run -v $(DIR):/app -w /app golang:1.17.5-alpine ash -c "gofmt -l -w /app/internal /app/cmd"
+cs-fix: ## format Go source code
+	docker run --rm -v $(DIR):/app -w /app golang:1.22-alpine ash -c "gofmt -l -w /app/domain /app/port /app/adapter /app/internal /app/cmd"
 
-up: ## to build and start Docker containers
+up: ## build and start Docker containers
 	docker-compose up --force-recreate --build --remove-orphans -d
 
-down: ## to stop Docker containers
+down: ## stop Docker containers
 	docker-compose down

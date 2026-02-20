@@ -36,7 +36,7 @@ function scrolling(el, throttle) {
       (up && (parseInt(el.dataset.scrollIndex) < parseInt(el.dataset.size)))
       || (up == false && parseInt(el.dataset.scrollIndex) > 0)
     ) {
-      up 
+      up
         ? el.dataset.scrollIndex++
         : el.dataset.scrollIndex--
       scrollTo = parseInt(el.dataset.scrollIndex) * NAV_SCROLL_IN_PIXEL
@@ -159,7 +159,7 @@ const myChart = new Chart(ctx, {
     labels: {{.Chart.Labels}},
     datasets: [
       {{range .Chart.Datasets}}{
-        {{if eq .Label "Forecast MIN"}} 
+        {{if eq .Label "Forecast MIN"}}
         borderColor: "rgba(209,229,240,1)",
           backgroundColor: "rgba(209,229,240,1)",
           {{else if eq .Label "Forecast MAX"}}

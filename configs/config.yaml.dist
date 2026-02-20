@@ -1,40 +1,28 @@
-version: 0.0.1
+version: 1.0.0
 
-logger:
-  cities:
-    - name: "{city name}"
-      longitude: "{longitude}"
-      latitude: "{latitude}"
-  forecast-providers:
-    openWeather:
-      appid: "{your app id / key}"
-    accuweather:
-      appid: "{your app id}"
-  database:
-    folder: "/path/to/database/"
-    fileName: "filename.db"
-    buckets:
-      - "logger-bucket-a"
-      - "logger-bucket-b"
-  mq:
-    user: "mq-user"
-    password: "mq-password"
-    domain: "mq.domain"
-    port: 1234
-    vhost: "mq-vhost"
-http:
-  port: 80
-  template:
-    index: "/path/to/index/template.html"
-  mq:
-    user: "mq-user"
-    password: "mq-password"
-    domain: "mq.domain"
-    port: 1234
-    vhost: "mq-vhost"
-  database:
-    folder: "/path/to/database/"
-    fileName: "filename.db"
-    buckets: 
-      - "http-bucket-a"
-      - "http-bucket-b"
+port: 8090
+
+template:
+  index: /app/web/template/index.html
+
+database:
+  path: /data/weather.db
+
+scheduler:
+  forecasts_interval: 6h
+  historical_interval: 24h
+
+providers:
+  open_weather:
+    api_key: "{your OpenWeatherMap API key}"
+  accu_weather:
+    api_key: "{your AccuWeather API key}"
+
+locations:
+  - name: "{city name}"
+    country:
+      name: "{country name}"
+      alpha2_code: "{HU}"
+    lat: 47.4979
+    lon: 19.0402
+    accu_weather_key: "{AccuWeather location key}"
