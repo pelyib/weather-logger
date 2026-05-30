@@ -1,0 +1,8 @@
+FROM alpine:3.15.0 AS dev
+
+RUN mkdir /app
+WORKDIR /app
+
+COPY ./bin/commander /app/commander
+
+CMD ["/app/commander"]

@@ -1,14 +1,29 @@
 version: '3.7'
 services:
-  server:
+  http:
     build:
-      dockerfile: ./docker/Dockerfile.server
+      dockerfile: ./docker/Dockerfile.http
       context: .
+      target: dev
     volumes:
-      - ./data:/data:rw
+      - ./db:/app/db:rw
       - ./configs/config.dev.yaml:/app/config.yaml:ro
       - ./web:/app/web:ro
     ports:
       - "8095:8090"
     environment:
       - CONFIG_FILE=/app/config.yaml
+    command: /app/http
+  logger:
+    build:
+      dockerfile: ./docker/Dockerfile.logger
+      context: .
+      target: dev
+    volumes:
+      - ./db/dev:/app/db:rw
+      - ./configs/config.dev.yaml:/app/config.yaml:ro
+    environment:
+      - CONFIG_FILE=/app/config.yaml
+    command: /app/logger
+  mq:
+    image: rabbitmq:3.9.13-alpine
