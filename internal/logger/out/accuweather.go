@@ -30,7 +30,7 @@ func (awh awHistorical) GetMeasurement(searchRequest shared.SearchRequest) []sha
 	mrs := shared.MakeEmptyResults()
 
 	q := url.Values{}
-	q.Add("apikey", awh.cnf.ForecastProviders.AccuWeather.AppId)
+	q.Add("metric", "true")
 
 	req, err := http.NewRequest(
 		"GET",
@@ -46,6 +46,7 @@ func (awh awHistorical) GetMeasurement(searchRequest shared.SearchRequest) []sha
 	}
 
 	req.URL.RawQuery = q.Encode()
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", awh.cnf.ForecastProviders.AccuWeather.AppId))
 
 	res, err := awh.client.Do(req)
 	if err != nil {
@@ -125,7 +126,6 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 	mrs := shared.MakeEmptyResults()
 
 	q := url.Values{}
-	q.Add("apikey", awf.cnf.ForecastProviders.AccuWeather.AppId)
 	q.Add("metric", "true")
 
 	req, err := http.NewRequest(
@@ -142,6 +142,7 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 	}
 
 	req.URL.RawQuery = q.Encode()
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", awf.cnf.ForecastProviders.AccuWeather.AppId))
 
 	res, err := awf.client.Do(req)
 	if err != nil {
