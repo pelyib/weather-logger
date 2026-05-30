@@ -43,7 +43,6 @@ func (p *Provider) fetchForecast(ctx context.Context, loc domain.Location) ([]do
 	}
 
 	q := url.Values{}
-	q.Set("apikey", p.APIKey)
 	q.Set("metric", "true")
 
 	req, err := http.NewRequestWithContext(
@@ -55,6 +54,7 @@ func (p *Provider) fetchForecast(ctx context.Context, loc domain.Location) ([]do
 		return nil, fmt.Errorf("accuweather forecast: build request: %w", err)
 	}
 	req.URL.RawQuery = q.Encode()
+	req.Header.Add("Authorization", "Bearer "+p.APIKey)
 
 	res, err := p.client.Do(req)
 	if err != nil {
