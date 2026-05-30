@@ -88,9 +88,9 @@ func TestMakeEmptyChart_HasRequiredDatasets(t *testing.T) {
 	}
 
 	required := map[string]bool{
-		DatasetLabelForecastMin:  false,
-		DatasetLabelForecastMax:  false,
-		DatasetLabelForecasts:    false,
+		DatasetLabelForecastMin:   false,
+		DatasetLabelForecastMax:   false,
+		DatasetLabelForecasts:     false,
 		DatasetLabelHistoricalMin: false,
 		DatasetLabelHistoricalMax: false,
 	}
