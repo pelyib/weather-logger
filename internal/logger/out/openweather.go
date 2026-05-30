@@ -122,11 +122,10 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 	q := url.Values{}
 	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Latitude))
 	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
-	q.Add("exclude", "current,minutely,hourly,alerts")
 	q.Add("appid", owf.cnf.ForecastProviders.OpenWeather.AppId)
 	q.Add("units", "metric")
 
-	req, err := http.NewRequest("GET", "https://api.openweathermap.org/data/2.5/onecall", nil)
+	req, err := http.NewRequest("GET", "https://api.openweathermap.org/data/2.5/forecast", nil)
 	if err != nil {
 		owf.l.Error(fmt.Sprintf("Can not build request, reason: %s", err.Error()))
 		return shared.MakeEmptyResults()
@@ -147,14 +146,13 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 	}
 
 	var decBody struct {
-		Daily []struct {
-			Dt   int64
-			Temp struct {
-				Min float32
-				Max float32
-			}
-			Pressure uint16
-		}
+		List []struct {
+			Dt   int64 `json:"dt"`
+			Main struct {
+				TempMin float32 `json:"temp_min"`
+				TempMax float32 `json:"temp_max"`
+			} `json:"main"`
+		} `json:"list"`
 	}
 
 	if err := json.Unmarshal(body, &decBody); err != nil {
@@ -162,17 +160,38 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 		return shared.MakeEmptyResults()
 	}
 
+	type dayMinMax struct {
+		min float32
+		max float32
+	}
+	dayMap := map[string]*dayMinMax{}
+	dayOrder := []string{}
+
+	for _, entry := range decBody.List {
+		day := time.Unix(entry.Dt, 0).UTC().Format("2006-01-02")
+		if d, ok := dayMap[day]; ok {
+			if entry.Main.TempMin < d.min {
+				d.min = entry.Main.TempMin
+			}
+			if entry.Main.TempMax > d.max {
+				d.max = entry.Main.TempMax
+			}
+		} else {
+			dayMap[day] = &dayMinMax{min: entry.Main.TempMin, max: entry.Main.TempMax}
+			dayOrder = append(dayOrder, day)
+		}
+	}
+
 	mrs := shared.MakeEmptyResults()
 
-	for _, df := range decBody.Daily {
-		at := time.Unix(df.Dt, 0)
-		at, _ = time.Parse("2006-01-02", at.Format("2006-01-02"))
-
+	for _, day := range dayOrder {
+		at, _ := time.Parse("2006-01-02", day)
+		d := dayMap[day]
 		mrs = append(mrs, shared.MeasurementResult{
 			Source:     "OpenWeather",
 			Type:       shared.MeasurementResult_Type_Forecast,
-			Min:        df.Temp.Min,
-			Max:        df.Temp.Max,
+			Min:        d.min,
+			Max:        d.max,
 			At:         at.Format(time.RFC3339),
 			RecordedAt: time.Now().Format(time.RFC3339),
 			Loc:        sr.Loc,
