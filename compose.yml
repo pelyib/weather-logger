@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  http:
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: .
+      target: dev
+      args:
+        APP: http
+    volumes:
+      - .:/app
+      - ./db:/app/db:rw
+    ports:
+      - "8095:8090"
+    environment:
+      - CONFIG_FILE=/app/configs/config.dev.yaml
+    depends_on:
+      - mq
+
+  logger:
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: .
+      target: dev
+      args:
+        APP: logger
+    volumes:
+      - .:/app
+      - ./db/dev:/app/db:rw
+    environment:
+      - CONFIG_FILE=/app/configs/config.dev.yaml
+    depends_on:
+      - mq
+
+  mq:
+    image: rabbitmq:3.9.13-alpine

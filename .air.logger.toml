@@ -1,0 +1,12 @@
+root = "."
+tmp_dir = "/tmp/air"
+
+[build]
+cmd = "go build -o /tmp/air/wl-app ./cmd/logger"
+bin = "/tmp/air/wl-app"
+include_ext = ["go"]
+exclude_dir = ["vendor", "docker", "configs", "db", "web", "scripts", "bin"]
+delay = 500
+
+[log]
+time = false

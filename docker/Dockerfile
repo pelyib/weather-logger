@@ -1,3 +1,10 @@
+FROM golang:1.22-alpine AS dev
+ARG APP
+ENV APP=$APP
+RUN go install github.com/air-verse/air@latest
+WORKDIR /app
+CMD ["sh", "-c", "air -c .air.${APP}.toml"]
+
 FROM golang:1.17.5-alpine AS builder
 
 ARG TARGETOS
