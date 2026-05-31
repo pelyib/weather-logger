@@ -114,3 +114,78 @@ func (omf omForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 func MakeOpenMeteoForecastProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
 	return omForecast{cnf: cnf, l: l, client: &http.Client{}}
 }
+
+type omHistorical struct {
+	cnf    *shared.LoggerCnf
+	l      shared.Logger
+	client *http.Client
+}
+
+func (omh omHistorical) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
+	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+
+	q := url.Values{}
+	q.Add("latitude", fmt.Sprintf("%f", sr.Loc.GeoLocation.Latitude))
+	q.Add("longitude", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
+	q.Add("start_date", yesterday)
+	q.Add("end_date", yesterday)
+	q.Add("daily", "temperature_2m_max,temperature_2m_min")
+	q.Add("timezone", omh.cnf.ForecastProviders.OpenMeteo.Timezone)
+	q.Add("timeformat", "unixtime")
+
+	req, err := http.NewRequest("GET", "https://archive-api.open-meteo.com/v1/archive", nil)
+	if err != nil {
+		omh.l.Error(fmt.Sprintf("Can not build request, reason: %s", err.Error()))
+		return shared.MakeEmptyResults()
+	}
+
+	req.URL.RawQuery = q.Encode()
+	res, err := omh.client.Do(req)
+	if err != nil {
+		omh.l.Error(fmt.Sprintf("Fetching historical from Open-Meteo failed, reason: %s", err.Error()))
+		return shared.MakeEmptyResults()
+	}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		omh.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
+		return shared.MakeEmptyResults()
+	}
+
+	var decBody struct {
+		Daily struct {
+			Time []int64   `json:"time"`
+			Max  []float32 `json:"temperature_2m_max"`
+			Min  []float32 `json:"temperature_2m_min"`
+		} `json:"daily"`
+	}
+	if err := json.Unmarshal(body, &decBody); err != nil {
+		omh.l.Error(fmt.Sprintf("Could not parse response body, reason: %s", err.Error()))
+		return shared.MakeEmptyResults()
+	}
+
+	mrs := shared.MakeEmptyResults()
+
+	for i, ts := range decBody.Daily.Time {
+		if i >= len(decBody.Daily.Max) || i >= len(decBody.Daily.Min) {
+			break
+		}
+		at := time.Unix(ts, 0).UTC()
+		mrs = append(mrs, shared.MeasurementResult{
+			Source:     "OpenMeteo",
+			Type:       shared.MeasurementResult_Type_Historical,
+			Min:        decBody.Daily.Min[i],
+			Max:        decBody.Daily.Max[i],
+			At:         at.Format(time.RFC3339),
+			RecordedAt: time.Now().Format(time.RFC3339),
+			Loc:        sr.Loc,
+		})
+	}
+
+	return mrs
+}
+
+func MakeOpenMeteoHistoricalProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
+	return omHistorical{cnf: cnf, l: l, client: &http.Client{}}
+}

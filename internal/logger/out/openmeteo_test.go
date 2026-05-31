@@ -1,6 +1,7 @@
 package out
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -132,6 +133,118 @@ func TestOMForecast_GetMeasurement_AtMatchesTimestamp(t *testing.T) {
 	wantAt := time.Unix(1780185600, 0).UTC().Format(time.RFC3339)
 	if results[0].At != wantAt {
 		t.Errorf("At: got %q, want %q", results[0].At, wantAt)
+	}
+}
+
+// omHistoricalFixture mirrors the example API response provided in the task spec.
+// Timestamp 1780092000 = 2026-05-30T22:00:00Z (midnight Europe/Berlin CEST).
+const omHistoricalFixture = `{
+	"latitude": 52.54833,
+	"longitude": 13.407822,
+	"utc_offset_seconds": 7200,
+	"timezone": "Europe/Berlin",
+	"daily_units": {"time": "unixtime", "temperature_2m_max": "°C", "temperature_2m_min": "°C"},
+	"daily": {
+		"time": [1780092000],
+		"temperature_2m_max": [22.1],
+		"temperature_2m_min": [17.9]
+	}
+}`
+
+func makeTestHistoricalProvider(client *http.Client) omHistorical {
+	cnf := &shared.LoggerCnf{}
+	cnf.ForecastProviders.OpenMeteo.Timezone = "Europe/Berlin"
+	return omHistorical{cnf: cnf, l: shared.MakeNullLogger(), client: client}
+}
+
+func TestOMHistorical_GetMeasurement_HappyPath(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+	r := results[0]
+	if r.Min != 17.9 {
+		t.Errorf("Min: got %v, want 17.9", r.Min)
+	}
+	if r.Max != 22.1 {
+		t.Errorf("Max: got %v, want 22.1", r.Max)
+	}
+}
+
+func TestOMHistorical_GetMeasurement_Source(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) == 0 {
+		t.Fatal("expected results, got none")
+	}
+	if results[0].Source != "OpenMeteo" {
+		t.Errorf("Source: got %q, want %q", results[0].Source, "OpenMeteo")
+	}
+}
+
+func TestOMHistorical_GetMeasurement_TypeIsHistorical(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) == 0 {
+		t.Fatal("expected results, got none")
+	}
+	if results[0].Type != shared.MeasurementResult_Type_Historical {
+		t.Errorf("Type: got %q, want %q", results[0].Type, shared.MeasurementResult_Type_Historical)
+	}
+}
+
+func TestOMHistorical_GetMeasurement_AtMatchesTimestamp(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) == 0 {
+		t.Fatal("expected results, got none")
+	}
+	want := time.Unix(1780092000, 0).UTC().Format(time.RFC3339)
+	if results[0].At != want {
+		t.Errorf("At: got %q, want %q", results[0].At, want)
+	}
+}
+
+func TestOMHistorical_GetMeasurement_LocationPropagated(t *testing.T) {
+	loc := shared.Location{Name: "Berlin"}
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	results := p.GetMeasurement(shared.SearchRequest{Loc: loc})
+	if len(results) == 0 {
+		t.Fatal("expected results, got none")
+	}
+	if results[0].Loc.Name != "Berlin" {
+		t.Errorf("Loc.Name: got %q, want %q", results[0].Loc.Name, "Berlin")
+	}
+}
+
+func TestOMHistorical_GetMeasurement_EmptyDailyArrays(t *testing.T) {
+	const fixture = `{"daily":{"time":[],"temperature_2m_max":[],"temperature_2m_min":[]}}`
+	p := makeTestHistoricalProvider(stubClient(fixture))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) != 0 {
+		t.Errorf("expected 0 results for empty daily arrays, got %d", len(results))
+	}
+}
+
+func TestOMHistorical_GetMeasurement_MalformedJSON(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient("not json"))
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) != 0 {
+		t.Errorf("expected 0 results for malformed JSON, got %d", len(results))
+	}
+}
+
+func TestOMHistorical_GetMeasurement_HTTPError(t *testing.T) {
+	client := &http.Client{
+		Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+			return nil, fmt.Errorf("connection refused")
+		}),
+	}
+	p := makeTestHistoricalProvider(client)
+	results := p.GetMeasurement(shared.SearchRequest{})
+	if len(results) != 0 {
+		t.Errorf("expected 0 results on HTTP error, got %d", len(results))
 	}
 }
 

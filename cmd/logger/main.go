@@ -53,9 +53,9 @@ func main() {
 				observers,
 			),
 			business.COMMAND_FETCH_HISTORICAL: in.MakeFetchCommandExecutor(
-				business.MakeMeasurementResultProviderPool(
-					[]business.MeasurementResultProvider{},
-				),
+				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
+					out.MakeOpenMeteoHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Historical")),
+				}),
 				observers,
 			),
 		},
