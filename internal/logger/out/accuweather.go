@@ -20,108 +20,6 @@ type awForecast struct {
 	client *http.Client
 }
 
-type awHistorical struct {
-	cnf    *shared.LoggerCnf
-	l      shared.Logger
-	client *http.Client
-}
-
-func (awh awHistorical) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
-	mrs := shared.MakeEmptyResults()
-
-	q := url.Values{}
-	q.Add("metric", "true")
-
-	req, err := http.NewRequest(
-		"GET",
-		fmt.Sprintf(
-			"http://dataservice.accuweather.com/currentconditions/v1/%s/historical/24",
-			searchRequest.Loc.Providers.AccuWeather.Locationkey,
-		),
-		nil,
-	)
-	if err != nil {
-		awh.l.Error(fmt.Sprintf("Could not build http.request, reason: %s", err.Error()))
-		return mrs
-	}
-
-	req.URL.RawQuery = q.Encode()
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", awh.cnf.ForecastProviders.AccuWeather.AppId))
-
-	res, err := awh.client.Do(req)
-	if err != nil {
-		awh.l.Error(fmt.Sprintf("Fetching Forecasts from Accuweather failed, reason: %s", err.Error()))
-		return mrs
-	}
-
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		awh.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
-		return mrs
-	}
-
-	var historicalBody []struct {
-		LocalObservationDateTime time.Time   `json:"LocalObservationDateTime"`
-		EpochTime                int64       `json:"EpochTime"`
-		WeatherText              string      `json:"WeatherText"`
-		WeatherIcon              int         `json:"WeatherIcon"`
-		HasPrecipitation         bool        `json:"HasPrecipitation"`
-		PrecipitationType        interface{} `json:"PrecipitationType"`
-		IsDayTime                bool        `json:"IsDayTime"`
-		Temperature              struct {
-			Metric struct {
-				Value    float32 `json:"Value"`
-				Unit     string  `json:"Unit"`
-				UnitType int     `json:"UnitType"`
-			} `json:"Metric"`
-			Imperial struct {
-				Value    int    `json:"Value"`
-				Unit     string `json:"Unit"`
-				UnitType int    `json:"UnitType"`
-			} `json:"Imperial"`
-		} `json:"Temperature"`
-		MobileLink string `json:"MobileLink"`
-		Link       string `json:"Link"`
-	}
-
-	if err := json.Unmarshal(body, &historicalBody); err != nil {
-		awh.l.Error(fmt.Sprintf("Could not parse response body, reason: %s", err.Error()))
-		return mrs
-	}
-
-	var min, max float32 = 60.0, -55.0
-	today, _ := time.Parse("2006/01/02", time.Now().Format("2006/01/02"))
-	todayUnixMilli := today.Unix()
-
-	for _, i := range historicalBody {
-		if i.EpochTime < todayUnixMilli {
-			continue
-		}
-		if i.Temperature.Metric.Value < min {
-			min = i.Temperature.Metric.Value
-		}
-		if i.Temperature.Metric.Value > max {
-			max = i.Temperature.Metric.Value
-		}
-	}
-
-	mrs = append(
-		mrs,
-		shared.MeasurementResult{
-			Source:     "AccuWeather",
-			Type:       shared.MeasurementResult_Type_Historical,
-			Min:        min,
-			Max:        max,
-			At:         today.Add(time.Hour * 24 * -1).Format(time.RFC3339),
-			RecordedAt: time.Now().Format(time.RFC3339),
-			Loc:        searchRequest.Loc,
-		},
-	)
-
-	return mrs
-}
-
 func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []shared.MeasurementResult {
 	mrs := shared.MakeEmptyResults()
 
@@ -213,8 +111,4 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 
 func MakeAccuWeatherForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB, l shared.Logger) business.MeasurementResultProvider {
 	return awForecast{cnf: cnf, db: db, l: l, client: &http.Client{}}
-}
-
-func MakeAccuWeatherHistoricalProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
-	return awHistorical{cnf: cnf, l: l, client: &http.Client{}}
 }

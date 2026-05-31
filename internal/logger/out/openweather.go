@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/logger/business"
@@ -40,82 +39,6 @@ type owForecast struct {
 	cnf    *shared.LoggerCnf
 	l      shared.Logger
 	client *http.Client
-}
-
-type owHistorical struct {
-	cnf    *shared.LoggerCnf
-	l      shared.Logger
-	client *http.Client
-}
-
-func (owh owHistorical) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
-	mrs := shared.MakeEmptyResults()
-	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
-	yesterday := today.Add(time.Hour * 24 * -1)
-
-	q := url.Values{}
-	q.Add("lat", fmt.Sprintf("%f", sr.Loc.GeoLocation.Latitude))
-	q.Add("lon", fmt.Sprintf("%f", sr.Loc.GeoLocation.Longitude))
-	q.Add("appid", owh.cnf.ForecastProviders.OpenWeather.AppId)
-	q.Add("units", "metric")
-	q.Add("dt", strconv.FormatInt(yesterday.Unix(), 10))
-
-	req, err := http.NewRequest("GET", "https://api.openweathermap.org/data/2.5/onecall/timemachine", nil)
-	if err != nil {
-		owh.l.Error(fmt.Sprintf("Can not build request, reason: %s", err.Error()))
-		return mrs
-	}
-
-	req.URL.RawQuery = q.Encode()
-	res, err := owh.client.Do(req)
-	if err != nil {
-		owh.l.Error(fmt.Sprintf("Fetching forecasts from OpenWeather failed, reason: %s", err.Error()))
-		return mrs
-	}
-
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		owh.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
-		return mrs
-	}
-
-	var decBody owHourlyResponse
-	if err := json.Unmarshal(body, &decBody); err != nil {
-		owh.l.Error(fmt.Sprintf("Could not parse response body, reason: %s", err.Error()))
-		return mrs
-	}
-
-	var min, max float32 = 60.0, -60.0
-	todayUnix := today.Unix()
-	yesterdayUnix := yesterday.Unix()
-
-	for _, i := range decBody.Hourly {
-		if i.Dt > todayUnix || i.Dt < yesterdayUnix {
-			continue
-		}
-		if i.Temp > max {
-			max = i.Temp
-		}
-		if i.Temp < min {
-			min = i.Temp
-		}
-	}
-
-	mrs = append(
-		mrs,
-		shared.MeasurementResult{
-			Source:     "OpenWeather",
-			Type:       shared.MeasurementResult_Type_Historical,
-			Min:        min,
-			Max:        max,
-			At:         yesterday.Format(time.RFC3339),
-			RecordedAt: time.Now().Format(time.RFC3339),
-			Loc:        sr.Loc,
-		},
-	)
-
-	return mrs
 }
 
 func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
@@ -203,8 +126,4 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 
 func MakeOpenWeatherForecastProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
 	return owForecast{cnf: cnf, l: l, client: &http.Client{}}
-}
-
-func MakeOpenWeatherHistoricalProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
-	return owHistorical{cnf: cnf, l: l, client: &http.Client{}}
 }

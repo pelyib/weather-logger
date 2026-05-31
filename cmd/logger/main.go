@@ -53,10 +53,7 @@ func main() {
 			),
 			business.COMMAND_FETCH_HISTORICAL: in.MakeFetchCommandExecutor(
 				business.MakeMeasurementResultProviderPool(
-					[]business.MeasurementResultProvider{
-						// 	out.MakeAccuWeatherHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Historical")),
-						// 	out.MakeOpenWeatherHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Historical")),
-					},
+					[]business.MeasurementResultProvider{},
 				),
 				observers,
 			),
