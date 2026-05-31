@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"gopkg.in/yaml.v2"
 )
@@ -82,28 +83,29 @@ type CityCnf struct {
 	Locationkey string  `yaml:"locationkey"`
 }
 
-var cnf Cnf
+var (
+	once     sync.Once
+	cnfCache *Cnf
+	cnfErr   error
+)
 
 func load(l Logger) (*Cnf, error) {
-	if len(cnf.Ver) > 0 {
-		l.Info("cnf already loaded")
-		return &cnf, nil
-	}
-
-	buf, err := ioutil.ReadFile(os.Getenv("CONFIG_FILE"))
-
-	if err != nil {
-		l.Error("File can not be loaded")
-		return nil, err
-	}
-	err = yaml.Unmarshal(buf, &cnf)
-
-	if err != nil {
-		l.Error("Invalid YAML file")
-		return nil, err
-	}
-
-	return &cnf, nil
+	once.Do(func() {
+		buf, err := ioutil.ReadFile(os.Getenv("CONFIG_FILE"))
+		if err != nil {
+			l.Error("File can not be loaded")
+			cnfErr = err
+			return
+		}
+		var c Cnf
+		if err = yaml.Unmarshal(buf, &c); err != nil {
+			l.Error("Invalid YAML file")
+			cnfErr = err
+			return
+		}
+		cnfCache = &c
+	})
+	return cnfCache, cnfErr
 }
 
 func CreateHttpConf(l Logger) (*HttpCnf, error) {
