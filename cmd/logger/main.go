@@ -48,6 +48,7 @@ func main() {
 				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
 					out.MakeAccuWeatherForecastProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
 					out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Forecast")),
+					out.MakeOpenMeteoForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Forecast")),
 				}),
 				observers,
 			),

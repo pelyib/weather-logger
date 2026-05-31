@@ -10,6 +10,20 @@ logger:
       appid: "{your app id / key}"
     accuweather:
       appid: "{your app id}"
+    openMeteo:
+      timezone: "Europe/Berlin"
+      models:
+        - "ecmwf_ifs"
+        - "jma_seamless"
+        - "gfs_seamless"
+        - "gem_regional"
+        - "icon_eu"
+        - "meteofrance_arpege_europe"
+        - "ukmo_seamless"
+        - "meteoswiss_icon_seamless"
+        - "kma_seamless"
+        - "metno_seamless"
+        - "geosphere_seamless"
   database:
     folder: "/path/to/database/"
     fileName: "filename.db"

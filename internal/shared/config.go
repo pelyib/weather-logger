@@ -50,6 +50,10 @@ type LoggerCnf struct {
 		AccuWeather struct {
 			AppId string
 		} `yaml:"accuweather"`
+		OpenMeteo struct {
+			Models   []string `yaml:"models"`
+			Timezone string   `yaml:"timezone"`
+		} `yaml:"openMeteo"`
 	} `yaml:"forecast-providers"`
 }
 
