@@ -11,12 +11,14 @@ import (
 
 	"github.com/pelyib/weather-logger/internal/logger/business"
 	"github.com/pelyib/weather-logger/internal/shared"
+	bolt "go.etcd.io/bbolt"
 )
 
 type omForecast struct {
 	cnf    *shared.LoggerCnf
 	l      shared.Logger
 	client *http.Client
+	db     *bolt.DB
 }
 
 func (omf omForecast) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
@@ -52,6 +54,8 @@ func (omf omForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 		omf.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return shared.MakeEmptyResults()
 	}
+
+	saveRawResponse(omf.db, bucketOpenMeteo, sr.Loc.Name, body, omf.l)
 
 	var decBody struct {
 		Daily map[string]json.RawMessage `json:"daily"`
@@ -111,14 +115,15 @@ func (omf omForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 	return mrs
 }
 
-func MakeOpenMeteoForecastProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
-	return omForecast{cnf: cnf, l: l, client: &http.Client{}}
+func MakeOpenMeteoForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB, l shared.Logger) business.MeasurementResultProvider {
+	return omForecast{cnf: cnf, l: l, client: &http.Client{}, db: db}
 }
 
 type omHistorical struct {
 	cnf    *shared.LoggerCnf
 	l      shared.Logger
 	client *http.Client
+	db     *bolt.DB
 }
 
 func (omh omHistorical) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
@@ -153,6 +158,8 @@ func (omh omHistorical) GetMeasurement(sr shared.SearchRequest) []shared.Measure
 		return shared.MakeEmptyResults()
 	}
 
+	saveRawResponse(omh.db, bucketOpenMeteo, sr.Loc.Name, body, omh.l)
+
 	var decBody struct {
 		Daily struct {
 			Time []int64   `json:"time"`
@@ -186,6 +193,6 @@ func (omh omHistorical) GetMeasurement(sr shared.SearchRequest) []shared.Measure
 	return mrs
 }
 
-func MakeOpenMeteoHistoricalProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
-	return omHistorical{cnf: cnf, l: l, client: &http.Client{}}
+func MakeOpenMeteoHistoricalProvider(cnf *shared.LoggerCnf, db *bolt.DB, l shared.Logger) business.MeasurementResultProvider {
+	return omHistorical{cnf: cnf, l: l, client: &http.Client{}, db: db}
 }

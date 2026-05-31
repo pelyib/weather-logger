@@ -28,8 +28,9 @@ logger:
     folder: "/path/to/database/"
     fileName: "filename.db"
     buckets:
-      - "logger-bucket-a"
-      - "logger-bucket-b"
+      - "accuweather.raw_response"
+      - "openweather.raw_response"
+      - "openmeteo.raw_response"
   mq:
     user: "mq-user"
     password: "mq-password"

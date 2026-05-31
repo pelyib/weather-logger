@@ -47,14 +47,14 @@ func main() {
 			business.COMMAND_FETCH_FORECASTS: in.MakeFetchCommandExecutor(
 				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
 					out.MakeAccuWeatherForecastProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Accuweather.Forecast")),
-					out.MakeOpenWeatherForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Forecast")),
-					out.MakeOpenMeteoForecastProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Forecast")),
+					out.MakeOpenWeatherForecastProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.Openweather.Forecast")),
+					out.MakeOpenMeteoForecastProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Forecast")),
 				}),
 				observers,
 			),
 			business.COMMAND_FETCH_HISTORICAL: in.MakeFetchCommandExecutor(
 				business.MakeMeasurementResultProviderPool([]business.MeasurementResultProvider{
-					out.MakeOpenMeteoHistoricalProvider(cnf, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Historical")),
+					out.MakeOpenMeteoHistoricalProvider(cnf, db, shared.MakeCliLogger(shared.App_Logger, "MeasurementProvider.OpenMeteo.Historical")),
 				}),
 				observers,
 			),

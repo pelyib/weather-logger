@@ -10,6 +10,7 @@ import (
 
 	"github.com/pelyib/weather-logger/internal/logger/business"
 	"github.com/pelyib/weather-logger/internal/shared"
+	bolt "go.etcd.io/bbolt"
 )
 
 type owHourlyResponse struct {
@@ -39,6 +40,7 @@ type owForecast struct {
 	cnf    *shared.LoggerCnf
 	l      shared.Logger
 	client *http.Client
+	db     *bolt.DB
 }
 
 func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.MeasurementResult {
@@ -67,6 +69,8 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 		owf.l.Error(fmt.Sprintf("Response body reading failed, reason: %s", err.Error()))
 		return shared.MakeEmptyResults()
 	}
+
+	saveRawResponse(owf.db, bucketOpenWeather, sr.Loc.Name, body, owf.l)
 
 	var decBody struct {
 		List []struct {
@@ -124,6 +128,6 @@ func (owf owForecast) GetMeasurement(sr shared.SearchRequest) []shared.Measureme
 	return mrs
 }
 
-func MakeOpenWeatherForecastProvider(cnf *shared.LoggerCnf, l shared.Logger) business.MeasurementResultProvider {
-	return owForecast{cnf: cnf, l: l, client: &http.Client{}}
+func MakeOpenWeatherForecastProvider(cnf *shared.LoggerCnf, db *bolt.DB, l shared.Logger) business.MeasurementResultProvider {
+	return owForecast{cnf: cnf, l: l, client: &http.Client{}, db: db}
 }

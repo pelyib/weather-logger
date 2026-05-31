@@ -55,19 +55,7 @@ func (awf awForecast) GetMeasurement(searchRequest shared.SearchRequest) []share
 		return mrs
 	}
 
-	if err := awf.db.Update(func(t *bolt.Tx) error {
-		b := t.Bucket([]byte("accuweather.raw_response"))
-		if b == nil {
-			return fmt.Errorf("bucket accuweather.raw_response not found")
-		}
-		if err := b.Put([]byte(time.Now().Format(time.UnixDate)), body); err != nil {
-			return err
-		}
-		awf.l.Info("Put done")
-		return nil
-	}); err != nil {
-		awf.l.Error(fmt.Sprintf("Failed to save raw response, reason: %s", err.Error()))
-	}
+	saveRawResponse(awf.db, bucketAccuWeather, searchRequest.Loc.Name, body, awf.l)
 
 	var decBody struct {
 		DailyForecasts []struct {

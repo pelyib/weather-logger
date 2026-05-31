@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/pelyib/weather-logger/internal/shared"
+	bolt "go.etcd.io/bbolt"
 )
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
@@ -51,11 +53,49 @@ const omFixture = `{
 	}
 }`
 
+func tempDB(t *testing.T, buckets ...string) *bolt.DB {
+	t.Helper()
+	f, err := os.CreateTemp("", "bolt-*.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	db, err := bolt.Open(f.Name(), 0600, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close(); os.Remove(f.Name()) })
+	if err := db.Update(func(tx *bolt.Tx) error {
+		for _, name := range buckets {
+			if _, err := tx.CreateBucketIfNotExists([]byte(name)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return db
+}
+
+func countKeys(t *testing.T, db *bolt.DB, bucket string) int {
+	t.Helper()
+	var n int
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if b != nil {
+			n = b.Stats().KeyN
+		}
+		return nil
+	})
+	return n
+}
+
 func makeTestProvider(models []string, client *http.Client) omForecast {
 	cnf := &shared.LoggerCnf{}
 	cnf.ForecastProviders.OpenMeteo.Models = models
 	cnf.ForecastProviders.OpenMeteo.Timezone = "Europe/Berlin"
-	return omForecast{cnf: cnf, l: shared.MakeNullLogger(), client: client}
+	return omForecast{cnf: cnf, l: shared.MakeNullLogger(), client: client, db: nil}
 }
 
 func TestOMForecast_GetMeasurement_ResultCount(t *testing.T) {
@@ -154,7 +194,41 @@ const omHistoricalFixture = `{
 func makeTestHistoricalProvider(client *http.Client) omHistorical {
 	cnf := &shared.LoggerCnf{}
 	cnf.ForecastProviders.OpenMeteo.Timezone = "Europe/Berlin"
-	return omHistorical{cnf: cnf, l: shared.MakeNullLogger(), client: client}
+	return omHistorical{cnf: cnf, l: shared.MakeNullLogger(), client: client, db: nil}
+}
+
+func TestOMForecast_GetMeasurement_SavesRawResponse(t *testing.T) {
+	db := tempDB(t, bucketOpenMeteo)
+	cnf := &shared.LoggerCnf{}
+	cnf.ForecastProviders.OpenMeteo.Models = []string{"ecmwf_ifs"}
+	cnf.ForecastProviders.OpenMeteo.Timezone = "Europe/Berlin"
+	p := omForecast{cnf: cnf, l: shared.MakeNullLogger(), client: stubClient(omFixture), db: db}
+	p.GetMeasurement(shared.SearchRequest{Loc: shared.Location{Name: "Luxembourg"}})
+	if countKeys(t, db, bucketOpenMeteo) != 1 {
+		t.Error("expected one raw response entry saved in DB")
+	}
+}
+
+func TestOMForecast_GetMeasurement_NilDB_NoPanic(t *testing.T) {
+	p := makeTestProvider([]string{"ecmwf_ifs"}, stubClient(omFixture))
+	// db is nil — saveRawResponse must be a no-op, not a panic
+	p.GetMeasurement(shared.SearchRequest{})
+}
+
+func TestOMHistorical_GetMeasurement_SavesRawResponse(t *testing.T) {
+	db := tempDB(t, bucketOpenMeteo)
+	cnf := &shared.LoggerCnf{}
+	cnf.ForecastProviders.OpenMeteo.Timezone = "Europe/Berlin"
+	p := omHistorical{cnf: cnf, l: shared.MakeNullLogger(), client: stubClient(omHistoricalFixture), db: db}
+	p.GetMeasurement(shared.SearchRequest{Loc: shared.Location{Name: "Berlin"}})
+	if countKeys(t, db, bucketOpenMeteo) != 1 {
+		t.Error("expected one raw response entry saved in DB")
+	}
+}
+
+func TestOMHistorical_GetMeasurement_NilDB_NoPanic(t *testing.T) {
+	p := makeTestHistoricalProvider(stubClient(omHistoricalFixture))
+	p.GetMeasurement(shared.SearchRequest{})
 }
 
 func TestOMHistorical_GetMeasurement_HappyPath(t *testing.T) {
