@@ -20,13 +20,13 @@ type InMemmoryRepository struct {
 
 type DatabaseRepository struct {
 	dbKey DatabaseKey
-	db    bbolt.DB
+	db    *bbolt.DB
 	l     shared.Logger
 }
 
 type DatabaseKey func(business.ChartSearchRequestI) []byte
 
-func (repo InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
+func (repo *InMemmoryRepository) Load(csr business.ChartSearchRequestI) *business.Chart {
 	key := string(repo.key(csr))
 	if _, ok := repo.charts[key]; ok {
 		return repo.charts[key]
@@ -61,7 +61,7 @@ func (repo DatabaseRepository) Load(csr business.ChartSearchRequestI) *business.
 	return &c
 }
 
-func (r InMemmoryRepository) Save(c business.Chart) error {
+func (r *InMemmoryRepository) Save(c business.Chart) error {
 	r.charts[string(r.key(business.ChartSearchRequest{Ym: c.Ym, Loc: c.Loc}))] = &c
 	return r.originRepo.Save(c)
 }
@@ -91,12 +91,12 @@ func MakeChartRepository(db *bbolt.DB, l shared.Logger) business.ChartRepository
 		return key.Bytes()
 	}
 
-	return InMemmoryRepository{
+	return &InMemmoryRepository{
 		key:    key,
 		charts: make(map[string]*business.Chart, 0),
 		originRepo: DatabaseRepository{
 			dbKey: key,
-			db:    *db,
+			db:    db,
 			l:     l,
 		},
 	}
