@@ -79,12 +79,18 @@ func serve(ctx context.Context, cnf *shared.HttpCnf, cr *business.ChartRepositor
 		fmt.Fprint(w, "ok")
 	})
 
-	hh := in.MakeHistoryHandler(cnf, cr)
+	hh, err := in.MakeHistoryHandler(cnf, cr)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	h.HandleFunc(regexp.MustCompile("/[a-z]{2}/[a-z]{1,}/[0-9]{4}/[0-9]{2}"), func(rw http.ResponseWriter, r *http.Request) {
 		hh.Handle(rw, r)
 	})
 
-	ih := in.MakeIndexHandler(cnf, cr)
+	ih, err := in.MakeIndexHandler(cnf, cr)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	h.HandleFunc(regexp.MustCompile("/"), func(rw http.ResponseWriter, r *http.Request) {
 		ih.Handle(rw, r)
 	})

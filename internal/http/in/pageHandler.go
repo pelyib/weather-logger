@@ -17,24 +17,34 @@ type PageHandler interface {
 }
 
 type pageHandler struct {
-	srb searchRequestBuilder
-	cnf *shared.HttpCnf
-	r   business.ChartRepository
+	srb  searchRequestBuilder
+	cnf  *shared.HttpCnf
+	r    business.ChartRepository
+	tmpl *template.Template
 }
 
 type searchRequestBuilder func([]shared.Location, *http.Request) business.ChartSearchRequestI
 
-func MakeIndexHandler(cnf *shared.HttpCnf, r *business.ChartRepository) PageHandler {
+func MakeIndexHandler(cnf *shared.HttpCnf, r *business.ChartRepository) (PageHandler, error) {
+	tmpl, err := template.ParseFiles(cnf.Template.Index)
+	if err != nil {
+		return nil, err
+	}
 	return pageHandler{
 		srb: func(locations []shared.Location, r *http.Request) business.ChartSearchRequestI {
 			return business.ChartSearchRequest{Ym: time.Now().Format("2006-01"), Loc: locations[0]}
 		},
-		cnf: cnf,
-		r:   *r,
-	}
+		cnf:  cnf,
+		r:    *r,
+		tmpl: tmpl,
+	}, nil
 }
 
-func MakeHistoryHandler(cnf *shared.HttpCnf, r *business.ChartRepository) PageHandler {
+func MakeHistoryHandler(cnf *shared.HttpCnf, r *business.ChartRepository) (PageHandler, error) {
+	tmpl, err := template.ParseFiles(cnf.Template.Index)
+	if err != nil {
+		return nil, err
+	}
 	return pageHandler{
 		srb: func(locations []shared.Location, r *http.Request) business.ChartSearchRequestI {
 			routeParams := strings.Split(r.URL.Path, "/")
@@ -54,9 +64,10 @@ func MakeHistoryHandler(cnf *shared.HttpCnf, r *business.ChartRepository) PageHa
 
 			return business.ChartSearchRequest{Ym: y + "-" + m, Loc: loc}
 		},
-		cnf: cnf,
-		r:   *r,
-	}
+		cnf:  cnf,
+		r:    *r,
+		tmpl: tmpl,
+	}, nil
 }
 
 func (h pageHandler) Handle(w http.ResponseWriter, req *http.Request) {
@@ -69,19 +80,13 @@ func (h pageHandler) renderTmpl(
 	w http.ResponseWriter,
 	chart business.Chart,
 ) {
-	tmpl, err := template.ParseFiles(h.cnf.Template.Index)
-	if err != nil {
-		log.Fatalf("template parsing failed: %s", err)
-	}
-
 	hw := business.Page{
 		Title:       "he!!o we4th3r",
 		Breadcrumbs: business.MakeBreadcrumbs(chart, h.cnf.Locations),
 		Chart:       chart,
 	}
 
-	err = tmpl.Execute(w, hw)
-	if err != nil {
+	if err := h.tmpl.Execute(w, hw); err != nil {
 		log.Println(fmt.Sprintf("template execution: %s", err))
 	}
 }
